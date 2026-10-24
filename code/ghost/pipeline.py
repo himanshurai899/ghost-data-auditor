@@ -54,14 +54,14 @@ def run(requests_path: Path, out_path: Path, runs_dir: Path = REPO / "runs", cas
     trail.event("load", f"Loaded {len(requests)} requests with valid schema and timestamps.", gate="G1", verdict="PASS")
 
     # S1 Ingest + G2
-    facts, quarantined = evidence.ingest(trail)
+    facts, coverage, quarantined = evidence.ingest(trail)
     n_files = len(read_csv(DATASET / "evidence_files.csv"))
     if len(quarantined) > MAX_QUARANTINE_SHARE * n_files:
-        abort("G2", f"{len(quarantined)} of {n_files} evidence files quarantined.", quarantined)
+        abort("G2", f"{len(quarantined)} of {n_files} evidence files quarantined.", [f"{q}: {r}" for q, r in quarantined])
     trail.event("ingest", f"Ingested {len(facts)} facts from {n_files} evidence files; {len(quarantined)} quarantined.",
                 gate="G2", verdict="PASS" if facts else "WARN")
 
-    ctx = {"identity": identity.build_index(), "facts": facts, "rules": read_csv(DATASET / "deletion_rules.csv"),
+    ctx = {"identity": identity.build_index(), "facts": facts, "coverage": coverage, "rules": read_csv(DATASET / "deletion_rules.csv"),
            "evidence_index": load_evidence_index(), "offline": offline}
     rows, g6_failures = [], 0
     for req in requests:
