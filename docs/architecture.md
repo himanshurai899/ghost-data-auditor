@@ -20,7 +20,7 @@ For each of 518 deletion requests, decide `COMPLETE | INCOMPLETE | NOT_APPLICABL
 | **Provider-agnostic** | One `llm.complete()` seam over the OpenAI-compatible chat API. The default is NVIDIA build (`integrate.api.nvidia.com/v1`); the model per role comes from env vars. An offline mode replays the cache with no key. | Matches the "any model, any tool" rule. Lets a clean run reproduce from cache. Free-tier rate limits (~40 req/min) are absorbed by batching and caching. |
 | **CLI is the product, UI is the console** | Graders run `python code/main.py`. The React console drives the same pipeline through a thin FastAPI layer and never forks the logic. | One code path to keep correct. The UI cannot change answers, only trigger and explain them. |
 
-**Tech stack:** Python 3.11+ (stdlib `sqlite3`/`csv`/`json`, `pypdf`, `openai` SDK pointed at NVIDIA, FastAPI + Uvicorn) · React 18 + TypeScript + Vite · NVIDIA build NIM endpoints for LLM, vision and embeddings.
+**Tech stack:** Python 3.11+ (stdlib `sqlite3`/`csv`/`json`/`urllib` for every NVIDIA call, `pypdf`, FastAPI + Uvicorn) · React 18 + TypeScript + Vite · NVIDIA build NIM endpoints for LLM, vision and embeddings.
 
 ## 3. System context
 
@@ -131,10 +131,20 @@ Hypotheses for the data-analyst agent to confirm against `sample_output.csv` bef
 | Use | Calls (full run) | Default model (env var) | Guardrails |
 |---|---|---|---|
 | Intent classification | ≤ ~30 batched calls after dedupe and rules | `nvidia/nemotron-3.5-lightning-30b-a3b` (`LLM_MODEL_FAST`) | JSON-schema output, enum validation, text wrapped as data, temp 0 |
-| Intent nearest-neighbour | 1 embedding per unique normalized text | `nvidia/nemotron-3.5-embed-1b` (`EMBED_MODEL`) | gives the classifier labelled neighbours from the 32 samples; never decides alone |
-| Vision/document extraction | 11 PNG + up to 4 PDF (text layer first) | `nvidia/nemotron-3.5-super-vl-120b-a12b` (`LLM_MODEL_VISION`), fallback `meta/llama-3.2-90b-vision-instruct` | extract-only prompt; output validated as `Fact` rows; cached by file SHA-256 |
+| Intent nearest-neighbour | 1 embedding per unique normalized text | `nvidia/nemotron-3.5-embed-1b` (`EMBED_MODEL`), 2048-d | gives the classifier labelled neighbours from the 32 samples; never decides alone |
+| Page extraction (primary) | 11 PNG + PDF pages without a text layer | `nvidia/nemotron-3.5-parse` (`PARSE_MODEL`): page image → Markdown with `<class_…>` layout tags and LaTeX tables | deterministic table/field parser turns the Markdown into `Fact` rows; PNG/JPEG magic-byte check; 20 MB cap; cached by request SHA-256 |
+| Visual interpretation (fallback) | only fields parse can't express (toggle states, badges) | `nvidia/nemotron-3.5-super-vl-120b-a12b` (`LLM_MODEL_VISION`) | extract-only prompt; schema-validated |
+| Console retrieval | per question | `nvidia/nemotron-3.5-embed-8b` (`EMBED_MODEL_LARGE`, 4096-d) for candidates → `nvidia/nemotron-3.5-rerank-8b` (`RERANK_MODEL`) top-k | one embedding model per index (vector spaces are never mixed); falls back to embed-1b for the whole index if 8b is unavailable |
 | Adjudicator | only G3/G6 ambiguity flags | `nvidia/nemotron-3-super-120b-a12b` (`LLM_MODEL_REASON`) | may only choose from a candidate set the code supplies; can't invent ids |
 | Console "Ask the auditor" (UI only, not in grading path) | on demand | reason model + embeddings over the run trail; input screened by `nvidia/llama-3.1-nemoguard-8b-topic-control` (`GUARD_MODEL`) | answers only from retrieved trail events, cites evidence ids, refuses off-topic or instruction-override asks |
+
+**Endpoints and keys** (live-verified 2026-10-25):
+
+- Embeddings: `POST {LLM_BASE_URL}/embeddings`.
+- Rerank: `POST {RETRIEVAL_BASE_URL}/{model}/reranking` → `{rankings: [{index, logit}]}`.
+- Parse: `POST {RETRIEVAL_BASE_URL}/{model}/parse` (multipart: `document` + `options`) → `{content, finish_reason, usage.output_tokens}`.
+
+Keys are account-scoped, so `NVIDIA_API_KEY` works everywhere. `NVIDIA_API_KEY_<ROLE>` overrides it per endpoint. Keys load from the gitignored `.env`, and real environment variables win. On the free tier, embed-8b returned a server-side 504 after 120 s during probing, so the client uses a 150 s timeout and 3 attempts with backoff.
 
 Model ids were checked against the live catalog on 2026-10-24. The setup check (`python code/main.py --check-models`) re-verifies them before a run.
 
@@ -238,6 +248,7 @@ Security is a primary concern. Each control below is enforced in code or by a ga
 | T14 | Path or command injection through the API | `run_id=../../`, `cases=["; rm"]` | regex-validated ids; no path parameters; pipeline called as a function, never via shell; Pydantic `extra="forbid"` | `api.py` |
 | T15 | API key exposure to the browser | key in the JS bundle or network tab | NVIDIA key read server-side from env only; UI never calls NVIDIA; Vite env exposes only `VITE_API_BASE` | DG5 scan of `web/dist` |
 | T16 | Resource abuse through the console | parallel runs, chat flooding the rate limit | single-run lock (409 when busy); `/api/ask` token bucket plus max input length; LLM budget cap per run (`LLM_MAX_CALLS`) | `api.py`, `llm.py` |
+| T18 | Secrets captured in agent session transcripts | IDE auto-attaches `.env` to the chat; session JSONL goes into `agent-trace.zip` | redact `nvapi-…` from every trace file before zipping; rotate keys after submission; never paste keys into prompts or `log.txt` | P4-05 checklist + `gate.py security` on `log.txt` |
 | T17 | XSS from evidence or LLM text in the UI | OCR text rendered as HTML | React default escaping; no `dangerouslySetInnerHTML`; strict CSP header from the API for the built UI | DG5 grep + CSP |
 
 ### 7.2 Secure defaults checklist

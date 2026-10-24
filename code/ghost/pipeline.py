@@ -31,7 +31,7 @@ def _git_sha() -> str:
 def run(requests_path: Path, out_path: Path, runs_dir: Path = REPO / "runs", cases=None, offline: bool = True) -> dict:
     requests_path, out_path = Path(requests_path), Path(out_path)
     trail = Trail(runs_dir, new_run_id())
-    manifest = {"run_id": trail.run_id, "git_sha": _git_sha(), "offline": offline, "models": llm.MODELS,
+    manifest = {"run_id": trail.run_id, "git_sha": _git_sha(), "offline": offline, "models": llm.models(),
                 "requests": requests_path.name}
 
     def abort(gate, summary, errors):

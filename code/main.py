@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from ghost import llm  # noqa: E402
 from ghost.contract import DATASET, REPO  # noqa: E402
 from ghost.pipeline import GateFailure, run  # noqa: E402
 
@@ -20,6 +21,7 @@ def main() -> int:
     ap.add_argument("--cases", nargs="*", help="only these case ids")
     ap.add_argument("--online", action="store_true", help="allow LLM calls (needs NVIDIA_API_KEY); default is offline")
     a = ap.parse_args()
+    llm.load_env()  # gitignored .env; real environment variables take precedence
     try:
         m = run(a.requests, a.out, cases=a.cases, offline=not a.online)
     except GateFailure as e:
