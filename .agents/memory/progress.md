@@ -16,16 +16,19 @@ PRs into `develop` don't auto-close issues (GitHub only auto-closes on the defau
 | P1-02 Contract module | #11 | PR #54; typed loaders dropped (D-015); planner-stub safety net |
 | P1-07 Identity | #16 | PR #55; 518/518 resolve (case-insensitive); test_identity.py 12 |
 | P1-08 Intent rules | #17 | PR #56; 508 DELETE / 10 NOT_DELETE / 0 UNKNOWN; test_intent.py 57 |
+| P1-01 Dataset forensics | #10 | PR #58; docs/evidence_field_map.md, F-011..F-022, D-016 |
 | P2-10 NVIDIA retrieval client | #52 | PR into develop; test_llm.py (19, red → green) + live smoke (3, RUN_LIVE=1) |
 
 ## Open, P1 MVP (next up, in order)
 
 | Id | # | Status | Owner | Note |
 |---|---|---|---|---|
-| P1-01 Dataset forensics + H1–H6 | #10 | doing | data-analyst | agent running (feature/10-dataset-forensics) |
-| P1-05 Evidence ingest | #14 | todo | implementer | after P1-01 |
+| P1-05 Evidence ingest (umbrella) | #14 | doing | coordinator | foundation merged (PR #59, D-018); closes when #60–#62 merge |
+| P1-05a SQL parser | #60 | todo | implementer | ev_sql.py |
+| P1-05b JSON parser | #61 | todo | implementer | ev_json.py |
+| P1-05c Log/TXT parser | #62 | todo | implementer | ev_text.py |
 | P1-06 Activity/audit facts | #15 | todo | implementer | |
-| P1-09 Temporal linker | #18 | todo | implementer | |
+| P1-09 Temporal linker | #18 | todo | implementer | D-017 switch `--strict-temporal`; report both readings |
 | P1-10 State reconstruction | #19 | todo | implementer | |
 | P1-11 Policy engine | #20 | todo | implementer | |
 | P1-12 Planner | #21 | todo | implementer | |
