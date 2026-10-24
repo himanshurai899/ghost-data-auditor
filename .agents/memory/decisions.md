@@ -58,3 +58,9 @@ P1-01 (#10) checked architecture.md §4.4 against all 32 samples. Detail is in `
 - **H6 confirmed, refined.** A replica-only row is a REPORT_REMAINING_RECORD on the same `account_service/<resource_id>`, not a separate system or resource (case_05 → evidence_54, case_16 → evidence_05). All replica drift in the dataset is of this kind (F-016).
 
 → The planner sorts with the single key above and never reorders. Evidence selection follows F-012, and G5 filters state and citation but not discovery (F-015). Accepted ceiling: 28 of 111 sample (case, resource) pairs cannot be linked from text evidence (F-020). The P1-10 open item is batch-order alignment for orphan accounts and analytics rows.
+
+**D-017 — Late evidence: discovery-only by default, behind a switch, both readings reported** · 2026-10-25 · accepted (user decision)
+F-015 conflicts with AGENTS.md "evidence created later must not change the answer": 8 sample resources in 7 cases link to the subject only through files captured after `audit_at`. → Default: late files may only reveal which resources belong to the subject; state and citation use files captured ≤ `audit_at` only. `python code/main.py --strict-temporal` ignores late files completely. The evaluation report shows sample scores under both readings, and the interview notes explain the choice. → Built in P1-09 (#18).
+
+**D-018 — Evidence ingest split into three parsers on one shared contract** · 2026-10-25 · accepted
+#14 covered four file families and ~3,200 rows, too much for one agent. → `evidence.py` owns `Fact`, `Coverage`, `system_for`, `norm_keys`, `is_null` and the `ingest` dispatcher (PNG/PDF deferred to P2-02; parser errors quarantine one file). `ev_sql.py`, `ev_json.py` and `ev_text.py` each implement `parse(path, meta) -> (facts, coverage)` and can be built in parallel (#59–#61).

@@ -540,3 +540,45 @@ P2-10,"P2-10: NVIDIA retrieval endpoints client (embed-1b/8b, rerank-8b, parse) 
 **Gate:** pytest + gate.py security
 **Depends on:** none
 **Design:** docs/architecture.md §4.5 · **Plan:** docs/delivery_plan.md","phase:p2,priority:high,llm,security",P2 Accuracy & Hardening,high,1,
+P1-05a,P1-05a: SQL evidence parser (24 snapshot exports),"**Goal:** Implement `parse(path, meta) -> (facts, coverage)` for this evidence family on the shared contract in `code/ghost/evidence.py` (D-018), following docs/evidence_field_map.md §2.1.
+
+**Acceptance criteria:**
+- [ ] Every SQL file parses through safety.open_sandboxed_sqlite (no quarantine)
+- [ ] Typed inventory tables + generic record_json replica tables -> Fact; replica rows stay account_service/<id> (F-016)
+- [ ] Coverage emitted for each table-level snapshot of a system (omission => ABSENT, F-012)
+- [ ] Observation/pii_fields/category per field map §1.4-1.5; tests use synthetic SQL fixtures
+- [ ] TDD red -> green; full suite + gate.py all PASS
+
+**Files:** `code/ghost/ev_sql.py, code/tests/test_ev_sql.py`
+**Gate:** pytest + gate.py all
+**Depends on:** P1-01 (done), evidence foundation (done)
+**Parent:** P1-05 (#14)
+**Design:** docs/evidence_field_map.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,pipeline",P1 MVP,high,1.5,P1-01
+P1-05b,P1-05b: JSON evidence parser (28 files incl. ledgers),"**Goal:** Implement `parse(path, meta) -> (facts, coverage)` for this evidence family on the shared contract in `code/ghost/evidence.py` (D-018), following docs/evidence_field_map.md §2.2, §2.5.
+
+**Acceptance criteria:**
+- [ ] Snapshot bundles, service_resource_export, ledgers, analytics report, export jobs all parse
+- [ ] Record `system` field wins over data_store (field map §1.1)
+- [ ] Coverage for snapshot collections; ledger rows never give omission-ABSENT
+- [ ] Tests use synthetic JSON fixtures
+- [ ] TDD red -> green; full suite + gate.py all PASS
+
+**Files:** `code/ghost/ev_json.py, code/tests/test_ev_json.py`
+**Gate:** pytest + gate.py all
+**Depends on:** P1-01 (done), evidence foundation (done)
+**Parent:** P1-05 (#14)
+**Design:** docs/evidence_field_map.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,pipeline",P1 MVP,high,1.5,P1-01
+P1-05c,"P1-05c: Log + TXT evidence parser (26 logs, 1 ledger)","**Goal:** Implement `parse(path, meta) -> (facts, coverage)` for this evidence family on the shared contract in `code/ghost/evidence.py` (D-018), following docs/evidence_field_map.md §2.3-2.5.
+
+**Acceptance criteria:**
+- [ ] Readback traces joined started/completed on trace_id; cache miss lines are not state
+- [ ] All six platform envelopes (kv, JSON, syslog, bracket, pipe, cloud message= with \"" unescape)
+- [ ] Ledger logs + TXT handover ledger rows; logs never emit Coverage
+- [ ] Tests use synthetic log lines
+- [ ] TDD red -> green; full suite + gate.py all PASS
+
+**Files:** `code/ghost/ev_text.py, code/tests/test_ev_text.py`
+**Gate:** pytest + gate.py all
+**Depends on:** P1-01 (done), evidence foundation (done)
+**Parent:** P1-05 (#14)
+**Design:** docs/evidence_field_map.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,pipeline",P1 MVP,high,1.5,P1-01

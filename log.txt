@@ -165,3 +165,58 @@ repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
 worktree=main
 parent_agent=none
 
+
+## [2026-10-24T19:15:30Z] P1-01 (#10) dataset forensics, field map, H1-H6 verdicts
+
+User Prompt (verbatim, secrets redacted):
+[coordinator task_spec TS-20261025-01, backlog P1-01 (#10), owner data-analyst] Profile every evidence family in dataset/evidence/ (24 sql, 28 json, 26 log, 1 txt; list PNG/PDF only), map fields to system_id/resource_id/subject identifiers/timestamps and PRESENT/ABSENT/REDACTED/ANONYMIZED/flow/restore signals and to deletion_rules data_category; profile system_activity event types; trace >= 12 sample cases end to end and derive the evidence_id selection and within-phase ordering rules; resolve H1-H6 from architecture.md 4.4; describe NOT_APPLICABLE request_text patterns (no emails) and audit_at vs captured_at vs row time. Write docs/evidence_field_map.md, append verified facts F-011+ to .agents/memory/dataset_facts.md, add D-016 to decisions.md. Analysis only, no code under code/, no dataset identifiers in committed files. Gitflow: feature/10-dataset-forensics, restore audit/gate_log.md before commit, push, open PR to develop, do not merge. Mid-task coordinator note: worktree was based on main; rebase onto origin/develop, append D-016 after D-015; use PR #55 finding (20 unresolved emails are upper-case variants) for H4 and correct F-004.
+
+Agent Response Summary:
+Built throwaway extractors in the session scratchpad covering every text evidence file, then traced all 32 samples end to end. The ordering key (phase, spec-table op index, system_id, resource_id) and the evidence-id rule (latest citable explicit file, else latest non-empty table-level snapshot for ABSENT) reproduce 32/32 orders and 75/75 citations. H1 confirmed, H2 rejected (no dependency reordering), H3/H4 resolved, H5 partly confirmed (legal hold open), H6 confirmed (replica-only row = finding on the same account resource). Key limit: 28 of 111 sample (case, resource) pairs have no identifier link in text evidence, and 3 appear in no participant file. Rebased onto develop, corrected F-004, added F-011..F-022 and D-016.
+
+Actions:
+* git fetch + rebase onto origin/develop; branch feature/10-dataset-forensics
+* scratch scripts (not committed): extract.py, trace.py, link.py, link2.py, evid.py, check.py, drift.py, acts.py, intent.py, prereq2.py, counts.py
+* wrote docs/evidence_field_map.md; edited .agents/memory/dataset_facts.md and .agents/memory/decisions.md
+* scripts/gate.py security -> PASS; git checkout -- audit/gate_log.md; commit c3ace55; git push; gh pr create (base develop)
+
+Context:
+tool=Claude Code
+model=claude-opus-5-5
+branch=feature/10-dataset-forensics
+repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
+worktree=C:\Himanshu\Projects\hackerrank-orchestrate-october26\.claude\worktrees\agent-a4831fd04c797a607
+parent_agent=coordinator
+## [2026-10-24T19:15:32Z] SESSION START
+
+tool=Claude Code
+model=claude-opus-5-5
+Repo Root: C:\Himanshu\Projects\hackerrank-orchestrate-october26
+Branch: develop
+Worktree: main
+Parent Agent: none
+Language: py
+Time Remaining: not configured
+
+## [2026-10-24T19:15:32Z] Run pipeline locally; report delivery completion percentage
+
+User Prompt (verbatim, secrets redacted):
+Can we run this locally now for me
+how much percentage of completion we have cover from Delivery perpective?
+
+Agent Response Summary:
+Ran the offline pipeline on the 32 samples and on all 518 cases; output.csv has 518 rows and the contract gate passes, but every case is NOT_APPLICABLE because evidence/state/policy/planner (P1-05..P1-12) are not built yet, so sample accuracy is 0. Ran pytest in .venv (149 passed, 3 skipped). The FastAPI console and web UI are still stubs, so nothing to launch there. Delivery: 16 of 52 issues closed (31%); 7.5 of 32.5 estimated hours (23%); P0 100%, P1 32%, P2-P5 0% (P2-10 client done outside the CSV).
+
+Actions:
+* python code/main.py --requests dataset/sample_deletion_requests.csv --out runs/sample_pred.csv; python code/evaluation/main.py --pred runs/sample_pred.csv
+* python code/main.py (518 rows -> output.csv)
+* .venv/Scripts/python -m pytest code/tests -q; python scripts/gate.py contract
+* gh issue list; computed estimate_h completion from docs/github_issues.csv
+
+Context:
+tool=Claude Code
+model=claude-opus-5-5
+branch=develop
+repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
+worktree=main
+parent_agent=none
