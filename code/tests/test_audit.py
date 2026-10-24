@@ -48,3 +48,10 @@ def test_close_writes_manifest_and_readable_report(tmp_path):
 def test_cases_listed_in_numeric_order(tmp_path):
     md = make_trail(tmp_path).close({"run_id": "x"})
     assert md.index("case_2") < md.index("case_10")
+
+
+def test_warning_without_gate_is_labelled_by_stage(tmp_path):
+    t = audit.Trail(tmp_path, "r")
+    t.event("plan", "Planner not implemented.", case_id="case_1", verdict="WARN")
+    md = t.close({"run_id": "r"})
+    assert "None" not in md and "⚠️ plan" in md

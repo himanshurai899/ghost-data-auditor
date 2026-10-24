@@ -53,3 +53,12 @@ def test_bad_input_aborts_at_g1(tmp_path):
     bad.write_text("case_id,email\ncase_1,x@y.z\n", encoding="utf-8")
     with pytest.raises(pipeline.GateFailure, match="G1"):
         pipeline.run(bad, tmp_path / "o.csv", runs_dir=tmp_path / "runs", offline=True)
+
+
+def test_unimplemented_downstream_stage_degrades_safely(run, monkeypatch, tmp_path):
+    from ghost import intent
+    monkeypatch.setattr(intent, "classify", lambda text, offline=True: intent.Intent("DELETE", 0.9, "test"))
+    out, m = run()                                   # planner is still a stub: the run must not crash
+    assert c.validate_output(out, SAMPLE) == [] and m["g6_failures"] == 0
+    events = [json.loads(x) for x in (tmp_path / "runs" / m["run_id"] / "trail.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert any(e["stage"] == "plan" and e["verdict"] == "WARN" and "not implemented" in e["summary"] for e in events)

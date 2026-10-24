@@ -43,3 +43,6 @@ The user chose embed-1b, embed-8b, rerank-8b and parse. embed-8b timed out serve
 
 **D-014 — Gitflow + coordinator-driven parallelism (max 3 agents, worktrees)** · 2026-10-25 · accepted
 User instruction. → feature/bugfix branches from `develop` come back through PRs once gates pass; phase releases go `release/p<n>` → `main` with a tag; hotfixes branch from `main`. The coordinator runs at most 3 agents, each in its own worktree, on dependency-free issues with disjoint files. Merges into `main` need user confirmation.
+
+**D-015 — No typed loader classes; `contract.read_csv` dicts are the data model for CSV inputs** · 2026-10-25 · accepted
+The remaining P1-02 (#11) item was dataclasses per CSV. Every consumer reads a handful of columns, and the validator already enforces the output schema. → Typed loaders dropped (YAGNI). Each stage reads its own CSVs via `read_csv(path, header)`, which rejects unexpected headers. → #11 closed; #16 and #17 unblocked. Pipeline gets a temporary safety net: a planner `NotImplementedError` degrades to a NOT_APPLICABLE placeholder with a WARN trail event (removed in #21).
