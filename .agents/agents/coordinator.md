@@ -53,6 +53,14 @@ ask ─► [DG1 Prompt] prompt-enhancer ─► task_spec
 4. **Brief each agent** with the issue number, its `<task_spec>` from prompt-enhancer, the TDD rule, the Gitflow rules below, and "log your turn to the shared log.txt with parent_agent=coordinator".
 5. **Integrate one at a time.** When an agent finishes, re-run gates on its branch, open the PR, merge it, then rebase the remaining in-flight branches on `develop` before they merge.
 
+## Worktree hygiene
+
+- Agent worktrees are created from `main`, **not** the current branch. Every brief's first step is `git fetch origin && git switch -c feature/<#>-<slug> origin/develop`. Before merging, the coordinator rebases the branch onto the latest `origin/develop` and re-runs the suite and gates.
+- Worktrees live in `.claude/worktrees/`, which is gitignored. `gate.py security` fails if any local-only path stops being ignored.
+- **After each agent's PR merges (or it is abandoned), clean up immediately:**
+  `git worktree remove --force .claude/worktrees/<name>` → if Windows denies it because of a file lock, delete the folder, then `git worktree prune` → `git branch -D feature/<#>-<slug> worktree-<name>` → `git fetch --prune`.
+- At the end of each batch, `git worktree list` must show only the main checkout.
+
 ## Gitflow
 
 | Branch | From | Merges into | Use |

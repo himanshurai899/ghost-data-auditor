@@ -11,3 +11,6 @@ Format: **symptom** → cause → fix.
 - **Nemotron chat models answered with `content: null` and only `reasoning_content`** → reasoning mode used up `max_tokens` → disable thinking (`chat_template_kwargs: {"enable_thinking": false}` or a `/no_think` system prompt, per model card) and set realistic `max_tokens` (P2-01).
 - **The IDE auto-attached `.env` (with keys) to the agent chat** → the keys are now inside the Claude Code session JSONL → redact `nvapi-…` in every trace file before building `agent-trace.zip`, and rotate the keys after the event (T18).
 - **Parse request bodies use a random multipart boundary, which breaks caching** → derive the boundary from the image's sha256 (done in `llm.parse_page`).
+- **Agent worktrees start from `main`, not `develop`** → the agent works on stale code (missing guards, conflicting memory files) → brief says `git switch -c feature/... origin/develop`; the coordinator rebases before merging.
+- **`git worktree remove` gets "Permission denied" on Windows** → a process still holds a file lock → delete the folder, then `git worktree prune`.
+- **`.claude/worktrees/` was not gitignored** → `git add -A` could commit agent worktrees as embedded repos → now ignored and enforced by `gate.py security` (`unignored()`).
