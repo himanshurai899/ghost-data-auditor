@@ -119,4 +119,9 @@ def audit_case(req: dict, ctx: dict, trail: Trail) -> tuple[str, list[dict]]:
 
     # S5-S7
     verdicts = reasoning.evaluate(facts, ctx["rules"], req["audit_at"])
-    return planner.plan(verdicts)
+    try:
+        return planner.plan(verdicts)
+    except NotImplementedError as e:  # ponytail: skeleton safety net while P1-10..P1-12 land; delete with #21
+        trail.event("plan", f"Planner stage not implemented ({e}); emitting NOT_APPLICABLE placeholder.",
+                    case_id=cid, verdict="WARN")
+        return "NOT_APPLICABLE", []
