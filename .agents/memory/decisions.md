@@ -28,3 +28,18 @@ User instruction. → Every issue writes failing tests first (red), then code (g
 
 **D-007 — Audit trails: JSONL for machines, Markdown for humans, rendered from the same events** · 2026-10-24 · accepted
 User asked for readable audit and logging trails. → `runs/<id>/trail.jsonl` + `report.md` (PII-masked), `audit/gate_log.md` for dev gates. → The two formats can't drift apart.
+
+**D-010 — NVIDIA keys: one account-scoped default + optional per-endpoint overrides** · 2026-10-25 · accepted
+The user generated 4 keys on separate model pages. A probe showed the embed-1b key also authorizes chat, so keys are account-scoped. → `NVIDIA_API_KEY` is the default; `NVIDIA_API_KEY_{EMBED,EMBED_LARGE,RERANK,PARSE,CHAT}` override it. The user's `.env` variable names were renamed to these, with all values preserved. → Chat models need no extra key.
+
+**D-011 — Stdlib HTTP for all NVIDIA calls; `openai` dependency dropped** · 2026-10-25 · accepted
+Parse needs multipart and rerank uses a non-OpenAI path, so the SDK covered only part of the surface. → `ghost/llm.py` uses `urllib` with an injectable transport, which makes it fully unit-testable. → One fewer supply-chain dependency (T10).
+
+**D-012 — Nemotron Parse is the primary screenshot/page extractor** · 2026-10-25 · accepted
+Live test on an evidence PNG returned the archive table (resource ids, accounts, regions, dates) as LaTeX tabular plus layout tags. → P2-02 parses that Markdown deterministically; the VL chat model is only a fallback for visual-only states. → Fewer free-form LLM calls; the output can be parsed by tests.
+
+**D-013 — Retrieval models: embed-1b for intent kNN; embed-8b + rerank-8b for console RAG** · 2026-10-25 · accepted
+The user chose embed-1b, embed-8b, rerank-8b and parse. embed-8b timed out server-side during probing. → Never mix vector spaces inside one index; fall back to 1b for a whole index, not per item.
+
+**D-014 — Gitflow + coordinator-driven parallelism (max 3 agents, worktrees)** · 2026-10-25 · accepted
+User instruction. → feature/bugfix branches from `develop` come back through PRs once gates pass; phase releases go `release/p<n>` → `main` with a tag; hotfixes branch from `main`. The coordinator runs at most 3 agents, each in its own worktree, on dependency-free issues with disjoint files. Merges into `main` need user confirmation.

@@ -45,7 +45,32 @@ ask ─► [DG1 Prompt] prompt-enhancer ─► task_spec
 | Threat model, gates, secrets, packaging hygiene | `security-guardian` |
 | Ambiguous or vague ask | `prompt-enhancer` first, always |
 
-Parallelize only when issues touch **disjoint files** (see `Files:` in the issue). Otherwise run them in sequence.
+## Parallel dispatch (max 3 agents)
+
+1. **Pick candidates.** Open issues in the current phase whose `depends_on` issues are all closed (`docs/github_issues.csv` + `gh issue list`).
+2. **Check independence.** Their `Files:` sets must not overlap, and none of them may touch `contract.py`, `gate.py` or test fixtures shared by another candidate. Shared-file work runs in sequence.
+3. **Dispatch at most 3 at once.** Each agent runs in its own git worktree (`isolation: "worktree"`) on its own feature branch. Never run two agents in one working tree.
+4. **Brief each agent** with the issue number, its `<task_spec>` from prompt-enhancer, the TDD rule, the Gitflow rules below, and "log your turn to the shared log.txt with parent_agent=coordinator".
+5. **Integrate one at a time.** When an agent finishes, re-run gates on its branch, open the PR, merge it, then rebase the remaining in-flight branches on `develop` before they merge.
+
+## Gitflow
+
+| Branch | From | Merges into | Use |
+|---|---|---|---|
+| `main` | — | — | released state only; each phase exit is a tagged release (`p1-mvp`, …) |
+| `develop` | `main` | `main` (via release) | integration branch; always green |
+| `feature/<issue#>-<slug>` | `develop` | `develop` | one backlog issue (e.g. `feature/14-evidence-ingest`) |
+| `bugfix/<issue#>-<slug>` | `develop` | `develop` | fix found before release |
+| `release/p<n>` | `develop` | `main` and back to `develop` | phase exit (DG6): final gates, report numbers, tag |
+| `hotfix/<issue#>-<slug>` | `main` | `main` and `develop` | urgent fix to a released state |
+
+Rules:
+
+- Never commit directly to `main` or `develop`. Every change arrives through a PR (`gh pr create --base develop`) whose body says `Closes #N` and pastes the TDD red and green runs plus the gate output.
+- Merge with `gh pr merge --merge --delete-branch`, which keeps a merge commit (`--no-ff`) so each feature stays visible in history. Merge only after DG3–DG5 pass on the branch.
+- Commit messages follow `P1-05 (#14): <what>` and end with the attribution trailer.
+- A release is `release/p<n>` → PR to `main` → `git tag p<n>-<name>` → merge back into `develop`.
+- The user confirms each merge into `main` (outward-facing). Merges into `develop` are within the coordinator's delegated authority once the gates pass.
 
 ## Rules
 

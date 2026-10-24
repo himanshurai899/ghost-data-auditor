@@ -50,3 +50,32 @@ repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
 worktree=main
 parent_agent=none
 
+## [2026-10-24T18:48:49Z] Integrate NVIDIA embed/rerank/parse endpoints; Gitflow + 3-agent rules
+
+User Prompt (verbatim, secrets redacted):
+we would be using :
+nemotron-3.5-embed-1b / nemotron-3.5-parse / nemotron-3.5-embed-8b / nemotron-3.5-rerank-8b (Free Endpoint descriptions and "API Key Granted" notices pasted; key values shown as {key here}; key IDs and names omitted here)
+Get the api reference from the NIVIDIA https://docs.api.nvidia.com/nim/reference/
+How to integrate them and keys from @.env file
+[mid-turn] after this we will start using coordinator and act on phasewise implementation, paralell agents acting on non-dependent github issues and at max 3 agents. Gitflow adherance while making any feature or fixes then merging to main
+
+Agent Response Summary:
+Read the NIM reference for the four endpoints and probed them live (values never printed). embed-1b, rerank-8b and parse returned 200; embed-8b returned a server-side 504 after 120s; the embed key also authorized a chat model, so keys are account-scoped. Renamed the .env variables to NVIDIA_API_KEY plus per-endpoint overrides (values preserved, file still gitignored) and built ghost/llm.py test-first on stdlib urllib: embed/rerank/parse, sha256 cache, offline fail-closed, retry/backoff, rpm throttle, usage meter, key redaction; dropped the openai dependency. Recorded Gitflow and max-3 parallel-agent rules in the coordinator, delivery plan and decisions (D-010..D-014), and added threat T18 (keys captured in agent transcripts; redact before agent-trace.zip). Created issue #52 and delivered it on feature/52 through a PR into the new develop branch.
+
+Actions:
+* WebFetch docs.api.nvidia.com/nim/reference (embed-1b, embed-8b, parse, rerank-8b inference pages)
+* Live probe via scratchpad script (output redacted); RUN_LIVE=1 pytest code/tests/test_llm_live.py -> 3 passed
+* .env variable rename (values preserved; verified still gitignored and never committed)
+* TDD: code/tests/test_llm.py red (18 fail) -> code/ghost/llm.py green; call-time model lookup test red -> green; 76 passed
+* Edited .env.example, code/requirements.txt, code/main.py, code/ghost/pipeline.py, docs/architecture.md, docs/delivery_plan.md, .agents/agents/coordinator.md, .agents/memory/*, submission-packager skill
+* gate.py security first FAILED on key-shaped fake keys in tests -> built fakes at runtime -> PASS
+* docs/github_issues.csv + import_issues.py --apply -> issue #52; git branch develop; feature/52-nvidia-retrieval-client; PR -> develop
+
+Context:
+tool=Claude Code
+model=claude-opus-5-5
+branch=feature/52-nvidia-retrieval-client
+repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
+worktree=main
+parent_agent=none
+

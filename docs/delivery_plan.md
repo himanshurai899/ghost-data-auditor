@@ -154,7 +154,11 @@ Every item maps to a moment you can show on screen.
 
 ## 8. Operating cadence (solo)
 
-- **Every 2 h:** `python scripts/gate.py all`. Update `.agents/memory/progress.md`. Commit to a phase branch, then open a PR to `main`.
-- **Every phase end:** tag `p<n>-done`; record metrics in `audit/gate_log.md` and the evaluation report.
-- **Branching:** `main` is protected by convention (always green). Work goes on `p<phase>/<issue-id>-<slug>` branches.
-- **Commits:** one issue per commit or PR, with the issue id in the message (`P1-05: SQL parser`).
+- **Coordinator-driven.** The coordinator picks ready issues (dependencies closed) and runs **at most 3 agents in parallel**, each in its own worktree, on issues with disjoint files.
+- **Gitflow** (full rules in `.agents/agents/coordinator.md`):
+  - `feature/<issue#>-<slug>` and `bugfix/…` branch from `develop`, and come back through a PR after gates DG3–DG5 pass.
+  - Each phase exit is `release/p<n>` → `main`, then tag `p<n>-<name>` and merge back into `develop`.
+  - `hotfix/…` branches from `main`.
+  - Nothing is committed directly to `main` or `develop`.
+- **Every merge:** `python scripts/gate.py all`, then update `.agents/memory/progress.md`, then close the issue with evidence.
+- **Commits:** one issue per PR, message `P1-05 (#14): <what>`; the PR body says `Closes #14` and includes the TDD red and green output.
