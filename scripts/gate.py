@@ -93,6 +93,16 @@ def scan_pii(files, root, emails: set[str]) -> list[str]:
     return hits
 
 
+REQUIRED_IGNORED = (".env", ".env.local", "runs/", ".cache/", ".venv/", "code.zip", ".claude/worktrees/",
+                    ".claude/settings.local.json", "web/node_modules/", "web/dist/", "agent-trace/")
+
+
+def unignored(root: Path = ROOT) -> list[str]:
+    """Local-only paths (secrets, runtime output, agent worktrees) that .gitignore fails to exclude (T1, T9)."""
+    return [p for p in REQUIRED_IGNORED
+            if subprocess.run(["git", "check-ignore", "-q", "--no-index", p], cwd=root).returncode != 0]
+
+
 def package_members(root: Path = ROOT) -> list[str]:
     """Allowlist: everything under code/ except caches, secrets, archives (T1, P4-03)."""
     base = root / "code"
@@ -178,6 +188,7 @@ def gate_security():
     tracked_env = subprocess.run(["git", "ls-files", "--", ".env", "code/.env"], cwd=ROOT,
                                  capture_output=True, text=True).stdout.split()
     problems += [f".env tracked: {f}" for f in tracked_env]
+    problems += [f"not gitignored: {p}" for p in unignored()]
     if problems:
         return "FAIL", f"{len(problems)} problems; first: {problems[0]}"
     return "PASS", f"{len(files)} files clean (secrets, unsafe APIs, golden leak, PII, .env)"

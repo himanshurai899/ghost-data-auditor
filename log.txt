@@ -79,3 +79,89 @@ repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
 worktree=main
 parent_agent=none
 
+## [2026-10-24T18:55:22Z] Coordinator: start P1 MVP, close #11, dispatch 3 parallel agents
+
+User Prompt (verbatim, secrets redacted):
+start next
+
+Agent Response Summary:
+Acting as coordinator, checked dependencies for the P1 candidates: #16 and #17 depended on #11, whose last item (typed loaders) was dropped as YAGNI (D-015). Fixed a latent crash, test-first: the planner stub raised NotImplementedError as soon as intent returned DELETE; the pipeline now degrades to a NOT_APPLICABLE placeholder with a WARN trail event. Merged via PR #54 into develop and closed #11. Then dispatched three agents in parallel, each in its own worktree, on dependency-free issues with disjoint files: data-analyst on #10 (forensics + H1-H6), implementer on #16 (identity), implementer on #17 (intent rules). Each delivers a PR into develop; the coordinator merges sequentially after gates.
+
+Actions:
+* feature/11-contract-closeout: test_pipeline degrade test + test_audit stage-label test (red -> green); pipeline.py guard; audit.py label fix; D-015
+* gate.py all PASS; PR #54 merged into develop (5042989); closed #11
+* Agent dispatch x3 (worktree isolation): feature/10-dataset-forensics, feature/16-identity-resolution, feature/17-intent-rules
+* gh: status:in-progress label + dispatch comments on #10, #16, #17
+
+Context:
+tool=Claude Code
+model=claude-opus-5-5
+branch=develop
+repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
+worktree=main
+parent_agent=none
+
+
+## [2026-10-24T18:58:16Z] Implementer: P1-07 (#16) identity resolution as of audit_at
+
+User Prompt (verbatim, secrets redacted):
+Coordinator dispatch TS-20261025-02 (P1-07, #16): implement code/ghost/identity.py test-first (build_index, resolve as of audit_at, historical emails/phones/hashes, ambiguous/unknown -> None), report resolved count and unresolved characterization, open PR into develop.
+
+Agent Response Summary:
+Wrote test_identity.py first (synthetic example.com fixtures + real-data counts). Red: 10 failed, 2 passed (stub returned None). Implemented build_index/resolve: strip+lower email match over current and historical emails, roll back audit changes after audit_at, include old values at or before audit_at, sha256 for every email (F-003), shared email -> holder at audit_at else None. Green: 12/12 identity, 69/69 full suite. 518/518 requests and 32/32 samples resolve; the 20 F-004 misses are fully upper-cased variants of stored emails (15 current, 5 historical), so F-004 should be updated. gate.py all PASS. PR #55 opened, not merged.
+
+Actions:
+* code/tests/test_identity.py (new), code/ghost/identity.py (implemented)
+* pytest red -> green; main.py run; gate.py all PASS (contract, eval, security, package)
+* commit + push feature/16-identity-resolution; PR https://github.com/himanshurai899/ghost-data-auditor/pull/55
+
+Context:
+tool=Claude Code
+model=claude-opus-5-5
+branch=feature/16-identity-resolution
+repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
+worktree=C:\Himanshu\Projects\hackerrank-orchestrate-october26\.claude\worktrees\agent-a15c0df5ef9ba1c2f
+parent_agent=coordinator
+
+
+## [2026-10-24T19:10:00Z] Implementer: P1-08 (#17) multilingual intent rules + injection flags
+
+User Prompt (verbatim, secrets redacted):
+Coordinator dispatch TS-20261025-03 (P1-08, #17): profile all request_text values, hand-label non-deletion texts, write test_intent.py first, implement rule-based classify() (multilingual deletion/non-deletion signals, negation, mixed asks, honest confidence, injection_marker flag), report the label distribution over the 518 requests, open PR into develop.
+
+Agent Response Summary:
+Profiled the 518 + 32 texts: languages en/es/pt/fr/ja/ko, 508 template deletions, and 10 real non-deletion texts (correction, opt-out, export, login help, access). These were hand-labelled into tests. Wrote test_intent.py first. RED: 49 failed, 8 passed (stub). Implemented normalize + injection-sentence stripping + negated-deletion removal + keep/non-deletion signals in intent.py. GREEN: 57/57 intent tests and 135 passed / 3 skipped full suite after rebasing on develop. Distribution over 518: 508 DELETE, 10 NOT_DELETE, 0 UNKNOWN. gate.py all PASS. PR #56 opened, not merged.
+
+Actions:
+* code/tests/test_intent.py (new), code/ghost/intent.py (implemented)
+* pytest red -> green; rebase onto develop; main.py run; gate.py all PASS (contract, eval, security, package)
+* commit + push feature/17-intent-rules; PR https://github.com/himanshurai899/ghost-data-auditor/pull/56
+
+Context:
+tool=Claude Code
+model=claude-opus-5-5
+branch=feature/17-intent-rules
+repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
+worktree=C:\Himanshu\Projects\hackerrank-orchestrate-october26\.claude\worktrees\agent-abb856702d8ee69d6
+parent_agent=coordinator
+## [2026-10-24T19:09:12Z] Gitignore local artifacts; worktree cleanup rules; merge #16/#17
+
+User Prompt (verbatim, secrets redacted):
+After completing Agents run cleanup the worktrees and add in gitignore which folders are not meant to be commited.
+
+Agent Response Summary:
+Reviewed, rebased onto develop, re-tested, and merged the identity (#16, PR #55) and intent (#17, PR #56) agent PRs, closed both issues with evidence, and removed their worktrees and branches. Found that .claude/worktrees/ was not gitignored. Added it plus .claude/settings.local.json to .gitignore, and made gate.py security fail whenever a required local-only path stops being ignored (test-first). Wrote worktree hygiene rules (start from origin/develop, clean up right after each merge) into the coordinator. The #10 worktree is cleaned up when that agent finishes.
+
+Actions:
+* Rebased feature/16 and feature/17 onto origin/develop; pytest 90 and 147 passed; gate.py all PASS; merged PR #55 and #56; closed #16 and #17
+* git worktree remove / prune; deleted merged branches; removed leftover locked folder
+* bugfix/gitignore-local-artifacts: test_gates.py 2 tests (red -> green); scripts/gate.py unignored(); .gitignore; coordinator.md worktree hygiene; pitfalls.md; progress.md
+
+Context:
+tool=Claude Code
+model=claude-opus-5-5
+branch=bugfix/gitignore-local-artifacts
+repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
+worktree=main
+parent_agent=none
+
