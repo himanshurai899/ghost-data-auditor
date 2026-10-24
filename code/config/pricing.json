@@ -1,0 +1,12 @@
+{
+  "_note": "Reference USD per 1M tokens, used only for estimated cost in usage_report.md. NVIDIA build free tier bills $0. Fill from a public price list for the same open models during P2-07 and record the source here; null means 'not estimated'.",
+  "source": null,
+  "models": {
+    "nvidia/nemotron-3.5-lightning-30b-a3b": {"input": null, "output": null},
+    "nvidia/nemotron-3-super-120b-a12b": {"input": null, "output": null},
+    "nvidia/nemotron-3.5-super-vl-120b-a12b": {"input": null, "output": null},
+    "meta/llama-3.2-90b-vision-instruct": {"input": null, "output": null},
+    "nvidia/nemotron-3.5-embed-1b": {"input": null, "output": null},
+    "nvidia/llama-3.1-nemoguard-8b-topic-control": {"input": null, "output": null}
+  }
+}

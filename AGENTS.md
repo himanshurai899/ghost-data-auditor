@@ -420,3 +420,16 @@ Before responding to any user message, confirm:
 - [ ] I will not log secrets or real personal data.
 - [ ] I will use only participant-facing files for predictions.
 - [ ] I will preserve the Ghost Data Still Exists deletion-audit and output contract in §6.
+
+---
+
+## 10. Team Orchestration Layer (participant addition)
+
+This section was added by the participant team. It does not change §1–§9.
+
+- The canonical, tool-agnostic agent team lives in `.agents/`. Read `.agents/README.md` after this file.
+- Default role: **coordinator** (`.agents/agents/coordinator.md`). Run every new ask through the **prompt-enhancer** skill (`.agents/skills/prompt-enhancer/SKILL.md`) first.
+- Shared memory: `.agents/memory/` (start at `MEMORY.md`).
+- Design and plan: `docs/architecture.md`, `docs/delivery_plan.md`, `docs/github_issues.csv`.
+- Gates: `python scripts/gate.py {contract|eval|security|package|all}`. Results append to `audit/gate_log.md`.
+- Logging to `log.txt` (§2, §5) stays mandatory for every agent and sub-agent.

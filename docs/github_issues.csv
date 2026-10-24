@@ -1,0 +1,529 @@
+id,title,body,labels,milestone,priority,estimate_h,depends_on
+P0-01,P0-01: Create private repo and wire upstream,"**Goal:** Private GitHub repo holds the source; organizer repo stays as `upstream` for updates.
+
+**Acceptance criteria:**
+- [ ] Repo private on owner account
+- [ ] `origin`=new repo, `upstream`=interviewstreet repo
+- [ ] `main` pushed
+
+**Files:** `(git config)`
+**Gate:** manual
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p0,priority:high,infra",P0 Foundation,high,0.25,
+P0-02,P0-02: Tool-agnostic agent layer (.agents/),"**Goal:** Canonical agent definitions any AGENTS.md-aware tool can follow.
+
+**Acceptance criteria:**
+- [ ] coordinator, prompt-enhancer, data-analyst, implementer, evaluator, security-guardian defined
+- [ ] AGENTS.md §10 points to .agents/
+- [ ] `.claude/` contains thin pointers only
+
+**Files:** `.agents/**, .claude/**, AGENTS.md`
+**Gate:** DG2
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p0,priority:high,agents,infra",P0 Foundation,high,0.5,
+P0-03,P0-03: Prompt-enhancer skill + agent,"**Goal:** Every raw ask becomes a grounded, testable task spec before work starts.
+
+**Acceptance criteria:**
+- [ ] SKILL.md + template.md + examples.md
+- [ ] Output has role/context/task/constraints/acceptance/verification/non-goals
+- [ ] Links the ask to a backlog id or proposes one
+- [ ] Self-check rubric scored
+
+**Files:** `.agents/skills/prompt-enhancer/**`
+**Gate:** DG1
+**Depends on:** P0-02
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p0,priority:high,agents,prompting",P0 Foundation,high,0.5,P0-02
+P0-04,P0-04: Agent memory seeded with verified dataset facts,"**Goal:** Agents share durable context across sessions and tools.
+
+**Acceptance criteria:**
+- [ ] MEMORY.md index, progress, decisions, dataset_facts, pitfalls
+- [ ] No secrets or unmasked PII in memory
+
+**Files:** `.agents/memory/**`
+**Gate:** DG5
+**Depends on:** P0-02
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p0,priority:high,agents",P0 Foundation,high,0.25,P0-02
+P0-05,P0-05: Executable dev gates + readable gate log,"**Goal:** Gates are runnable commands with an append-only Markdown trail.
+
+**Acceptance criteria:**
+- [ ] `gate.py contract|eval|security|package|all`
+- [ ] Each run appends a row to audit/gate_log.md
+- [ ] Non-zero exit on FAIL
+
+**Files:** `scripts/gate.py, audit/gate_log.md`
+**Gate:** self
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p0,priority:high,security,quality",P0 Foundation,high,0.75,
+P0-06,P0-06: Pipeline walking skeleton,"**Goal:** End-to-end run writes a contract-valid 518-row output and a run trail.
+
+**Acceptance criteria:**
+- [ ] `python code/main.py` exits 0
+- [ ] runs/<id>/manifest.json, trail.jsonl, report.md written
+- [ ] Stages stubbed with TODO(issue-id)
+
+**Files:** `code/main.py, code/ghost/*`
+**Gate:** gate.py contract
+**Depends on:** P0-05
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p0,priority:high,pipeline",P0 Foundation,high,0.5,P0-05
+P0-07,P0-07: Secure config baseline,"**Goal:** Secrets never reach git; dependencies pinned.
+
+**Acceptance criteria:**
+- [ ] .gitignore covers .env, runs/, .cache/, node_modules, dist, code.zip
+- [ ] .env.example lists names only
+- [ ] requirements.txt pinned
+
+**Files:** `.gitignore, .env.example, code/requirements.txt`
+**Gate:** gate.py security
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p0,priority:high,security",P0 Foundation,high,0.25,
+P0-08,P0-08: Backlog CSV + safe issue importer,"**Goal:** Backlog can be dumped to GitHub Issues in one command.
+
+**Acceptance criteria:**
+- [ ] Dry run by default; `--apply` required
+- [ ] Creates labels and milestones idempotently
+- [ ] No shell=True
+
+**Files:** `docs/github_issues.csv, scripts/import_issues.py`
+**Gate:** manual dry run
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p0,priority:medium,infra",P0 Foundation,medium,0.25,
+P0-09,P0-09: React + Vite console scaffold,"**Goal:** Console project exists and builds.
+
+**Acceptance criteria:**
+- [ ] `npm run build` succeeds
+- [ ] Only VITE_API_BASE exposed to the client
+
+**Files:** `web/**`
+**Gate:** build
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p0,priority:medium,ui",P0 Foundation,medium,0.25,
+P1-01,P1-01: Dataset forensics + resolve hypotheses H1-H6,"**Goal:** Know exactly how each evidence family maps to system/resource/subject/state before coding.
+
+**Acceptance criteria:**
+- [ ] Field map per format (sql/json/log/txt/png/pdf)
+- [ ] H1-H6 answered with sample case citations
+- [ ] Findings written to .agents/memory/dataset_facts.md
+
+**Files:** `.agents/memory/dataset_facts.md`
+**Gate:** DG2
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,analysis",P1 MVP,high,1.5,
+P1-02,"P1-02: Contract module: load, validate (G1/G6/G7), write","**Goal:** One validator shared by the pipeline and the gates.
+
+**Acceptance criteria:**
+- [ ] Typed loaders for all CSVs
+- [ ] G6 checks enums, numbering, phase/op order, evidence rules
+- [ ] Numeric case_id sort
+- [ ] Unit checks for each failure mode
+
+**Files:** `code/ghost/contract.py`
+**Gate:** gate.py contract
+**Depends on:** P0-06
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,pipeline",P1 MVP,high,0.75,P0-06
+P1-03,P1-03: Scorer vs sample_output,"**Goal:** Measure status/step/field/sequence accuracy before tuning.
+
+**Acceptance criteria:**
+- [ ] Prints all four metrics + per-case diffs
+- [ ] Baseline recorded in gate log
+- [ ] Only code/evaluation may read sample_output.csv
+
+**Files:** `code/evaluation/main.py`
+**Gate:** gate.py eval
+**Depends on:** P1-02
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,eval",P1 MVP,high,0.75,P1-02
+P1-04,"P1-04: Safety module (path guard, SQLite authorizer, caps, mask)","**Goal:** Untrusted inputs are confined by code.
+
+**Acceptance criteria:**
+- [ ] Path outside dataset/evidence rejected
+- [ ] ATTACH/load_extension denied
+- [ ] Size caps enforced
+- [ ] mask() used by audit report
+
+**Files:** `code/ghost/safety.py`
+**Gate:** security unit checks
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,security",P1 MVP,high,0.5,
+P1-05,P1-05: Evidence ingest: SQL/JSON/log/TXT -> Fact + G2,"**Goal:** Normalize all text evidence once into a Fact table.
+
+**Acceptance criteria:**
+- [ ] Every manifest file parsed or quarantined with reason
+- [ ] Fact carries evidence_id, observed_at, system_id, resource_id, category, subject_keys, observation, pii_fields
+- [ ] Fixture check per format
+
+**Files:** `code/ghost/evidence.py`
+**Gate:** G2
+**Depends on:** P1-01,P1-04
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,pipeline",P1 MVP,high,2,"P1-01,P1-04"
+P1-06,P1-06: Activity + audit-log facts (claims vs observations),"**Goal:** Activity events become claim facts; flows and restores derived.
+
+**Acceptance criteria:**
+- [ ] SYNC/IMPORT/RESTORE/CHECK_* mapped
+- [ ] reported_result kept as claim only
+
+**Files:** `code/ghost/evidence.py`
+**Gate:** fixture
+**Depends on:** P1-05
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,pipeline",P1 MVP,high,0.75,P1-05
+P1-07,P1-07: Identity resolution as of audit_at + G4,"**Goal:** Current + historical identifiers for the subject.
+
+**Acceptance criteria:**
+- [ ] Audit log replayed up to audit_at
+- [ ] Historical email hashes derived (sha256)
+- [ ] Unresolved emails flagged in trail
+
+**Files:** `code/ghost/identity.py`
+**Gate:** unit
+**Depends on:** P1-02
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,pipeline",P1 MVP,high,0.75,P1-02
+P1-08,P1-08: Intent rules (multilingual) + G3,"**Goal:** Deletion vs non-deletion without an LLM.
+
+**Acceptance criteria:**
+- [ ] 32/32 sample intents correct
+- [ ] Normalized-text cache
+- [ ] Injection markers flagged
+
+**Files:** `code/ghost/intent.py`
+**Gate:** unit
+**Depends on:** P1-02
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,pipeline",P1 MVP,high,0.75,P1-02
+P1-09,P1-09: Temporal linker + G5 hard filter,"**Goal:** Only evidence <= audit_at can influence or be cited.
+
+**Acceptance criteria:**
+- [ ] Facts after audit_at dropped
+- [ ] Test: post-audit decoy never cited
+
+**Files:** `code/ghost/reasoning.py`
+**Gate:** unit
+**Depends on:** P1-05,P1-07
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,pipeline,security",P1 MVP,high,0.5,"P1-05,P1-07"
+P1-10,P1-10: State reconstruction incl. replica drift,"**Goal:** Per-resource state at audit_at from observations.
+
+**Acceptance criteria:**
+- [ ] Latest observation wins
+- [ ] Recreation after deletion detected
+- [ ] Replica vs primary drift produces separate resources
+
+**Files:** `code/ghost/reasoning.py`
+**Gate:** sample diff
+**Depends on:** P1-09
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,pipeline",P1 MVP,high,1.5,P1-09
+P1-11,"P1-11: Policy engine (15 rules, tombstone)","**Goal:** Required final state per resource with rule id.
+
+**Acceptance criteria:**
+- [ ] Each rule unit-checked
+- [ ] Tombstone keeps user_id, flags name/email/phone/email_hash
+
+**Files:** `code/ghost/reasoning.py`
+**Gate:** unit
+**Depends on:** P1-10
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,pipeline",P1 MVP,high,0.75,P1-10
+P1-12,P1-12: Planner: ordering + status,"**Goal:** Exact step lists and statuses.
+
+**Acceptance criteria:**
+- [ ] Op-order then system_id then resource_id
+- [ ] Flows/restores remediated before records
+- [ ] COMPLETE=verification only with evidence
+
+**Files:** `code/ghost/planner.py`
+**Gate:** gate.py eval
+**Depends on:** P1-11
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,pipeline",P1 MVP,high,1,P1-11
+P1-13,P1-13: Run trail + readable Markdown report,"**Goal:** Human-readable per-case audit trail.
+
+**Acceptance criteria:**
+- [ ] Summary + gate table + per-case claim vs truth
+- [ ] PII masked
+- [ ] Rendered from trail.jsonl
+
+**Files:** `code/ghost/audit.py`
+**Gate:** review
+**Depends on:** P0-06
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:medium,audit",P1 MVP,medium,0.5,P0-06
+P1-14,P1-14: Full run v1 + evaluation report v1,"**Goal:** First submittable output.
+
+**Acceptance criteria:**
+- [ ] 518 rows, G7 PASS
+- [ ] evaluation_report.md metrics filled from scorer
+
+**Files:** `output.csv, code/evaluation/evaluation_report.md`
+**Gate:** G7, DG4
+**Depends on:** P1-12,P1-03
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p1,priority:high,eval",P1 MVP,high,0.5,"P1-12,P1-03"
+P2-01,"P2-01: NVIDIA LLM client: cache, rate limit, retry, usage meter","**Goal:** Single provider-agnostic seam to NVIDIA build.
+
+**Acceptance criteria:**
+- [ ] OpenAI-compatible base_url from env
+- [ ] sha256 cache; --offline fails closed on miss
+- [ ] Token bucket <= 35 rpm; 429 backoff
+- [ ] usage.jsonl per call
+
+**Files:** `code/ghost/llm.py`
+**Gate:** unit with fake transport
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p2,priority:high,llm",P2 Accuracy & Hardening,high,1,
+P2-02,P2-02: Vision/PDF extraction -> Fact rows,"**Goal:** Screenshots and PDFs contribute facts.
+
+**Acceptance criteria:**
+- [ ] PDF text layer first, VL model fallback
+- [ ] Output schema-validated into Fact
+- [ ] Cached by file sha256
+
+**Files:** `code/ghost/evidence.py, code/prompts/vision_extractor.md`
+**Gate:** fixture
+**Depends on:** P2-01,P1-05
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p2,priority:high,llm,pipeline",P2 Accuracy & Hardening,high,1.25,"P2-01,P1-05"
+P2-03,P2-03: Intent LLM + embedding neighbours for low confidence,"**Goal:** Robust intent on unusual texts.
+
+**Acceptance criteria:**
+- [ ] Only low-confidence texts sent
+- [ ] Batched; enum JSON validated
+- [ ] Disagreements logged in trail
+
+**Files:** `code/ghost/intent.py, code/prompts/intent_classifier.md`
+**Gate:** G3
+**Depends on:** P2-01,P1-08
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p2,priority:medium,llm",P2 Accuracy & Hardening,medium,0.75,"P2-01,P1-08"
+P2-04,P2-04: Adjudicator for flagged conditions,"**Goal:** Resolve ambiguous rule conditions safely.
+
+**Acceptance criteria:**
+- [ ] Chooses only from code-supplied candidates
+- [ ] Never invents ids
+
+**Files:** `code/ghost/reasoning.py, code/prompts/adjudicator.md`
+**Gate:** G6
+**Depends on:** P2-01
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p2,priority:low,llm",P2 Accuracy & Hardening,low,0.75,P2-01
+P2-05,P2-05: Custom evaluation cases (>=5),"**Goal:** Prove robustness beyond samples.
+
+**Acceptance criteria:**
+- [ ] Injection text, post-audit decoy, sync recreation, tombstone leftover hash, foreign-language non-deletion
+- [ ] Expected outputs hand-derived and documented
+
+**Files:** `code/evaluation/custom_cases/**`
+**Gate:** gate.py eval --custom
+**Depends on:** P1-14
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p2,priority:high,eval",P2 Accuracy & Hardening,high,0.75,P1-14
+P2-06,"P2-06: Security test pack (T2,T4,T5,T7,T8,T9)","**Goal:** Threat model controls proven by tests.
+
+**Acceptance criteria:**
+- [ ] Each threat has a failing-if-broken check
+- [ ] Wired into gate.py security
+
+**Files:** `code/tests/test_security.py`
+**Gate:** gate.py security
+**Depends on:** P1-04
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p2,priority:high,security",P2 Accuracy & Hardening,high,0.75,P1-04
+P2-07,P2-07: Usage report generator,"**Goal:** usage_report.md generated, never hand-typed.
+
+**Acceptance criteria:**
+- [ ] Per-model + overall totals
+- [ ] Avg tokens/request, est. cost (reference rates), $0 billed note
+
+**Files:** `code/evaluation/usage.py`
+**Gate:** matches meter
+**Depends on:** P2-01
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p2,priority:high,eval",P2 Accuracy & Hardening,high,0.5,P2-01
+P2-08,P2-08: Determinism check,"**Goal:** Reruns are byte-identical.
+
+**Acceptance criteria:**
+- [ ] Two offline runs -> same sha256
+- [ ] Recorded in manifest
+
+**Files:** `scripts/gate.py`
+**Gate:** G7
+**Depends on:** P2-01
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p2,priority:medium,quality",P2 Accuracy & Hardening,medium,0.25,P2-01
+P2-09,P2-09: Failure analysis loop on sample diffs,"**Goal:** Close the top accuracy gaps.
+
+**Acceptance criteria:**
+- [ ] Top-10 diffs triaged
+- [ ] Fixes logged in evaluation_report 'Failures and improvements'
+
+**Files:** `code/evaluation/evaluation_report.md`
+**Gate:** DG4
+**Depends on:** P1-14
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p2,priority:high,eval",P2 Accuracy & Hardening,high,1,P1-14
+P3-01,P3-01: FastAPI console API with T13-T17 controls,"**Goal:** Console drives pipeline.run() safely.
+
+**Acceptance criteria:**
+- [ ] 127.0.0.1 bind, CORS + Host allowlist
+- [ ] X-Console-Token on mutating routes
+- [ ] Regex-validated ids, extra=forbid
+- [ ] Single-run lock, CSP header
+
+**Files:** `code/ghost/api.py`
+**Gate:** api tests
+**Depends on:** P1-13
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p3,priority:high,ui,security",P3 Wow Console,high,1,P1-13
+P3-02,P3-02: Live gate board (SSE),"**Goal:** Stages/gates stream per case in real time.
+
+**Acceptance criteria:**
+- [ ] SSE tail of trail.jsonl
+- [ ] Red cases clickable
+
+**Files:** `web/src/**`
+**Gate:** demo script
+**Depends on:** P3-01
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p3,priority:high,ui,wow",P3 Wow Console,high,1,P3-01
+P3-03,P3-03: Claim vs truth view,"**Goal:** Show reported vs audited status with ghost counter.
+
+**Acceptance criteria:**
+- [ ] Matrix reported x audited
+- [ ] Click-through to case
+
+**Files:** `web/src/**`
+**Gate:** demo script
+**Depends on:** P3-01
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p3,priority:high,ui,wow",P3 Wow Console,high,0.75,P3-01
+P3-04,P3-04: Resurrection timeline,"**Goal:** Facts over time with evidence chips.
+
+**Acceptance criteria:**
+- [ ] Ordered by observed_at; audit_at marker
+- [ ] Chip opens source snippet (masked)
+
+**Files:** `web/src/**`
+**Gate:** demo script
+**Depends on:** P3-01
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p3,priority:high,ui,wow",P3 Wow Console,high,1,P3-01
+P3-05,P3-05: Identity graph,"**Goal:** Current and historical identifiers linked to systems.
+
+**Acceptance criteria:**
+- [ ] Graph renders for any case
+- [ ] Masked identifiers
+
+**Files:** `web/src/**`
+**Gate:** demo script
+**Depends on:** P3-01
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p3,priority:medium,ui,wow",P3 Wow Console,medium,0.75,P3-01
+P3-06,P3-06: Ask the auditor (grounded chat + guard),"**Goal:** Q&A over the run trail with citations.
+
+**Acceptance criteria:**
+- [ ] Retrieval over trail via embeddings
+- [ ] Guard model screens input
+- [ ] Answers cite evidence ids or refuse
+
+**Files:** `code/ghost/api.py, web/src/**`
+**Gate:** demo script
+**Depends on:** P3-01,P2-01
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p3,priority:medium,ui,llm,wow",P3 Wow Console,medium,1,"P3-01,P2-01"
+P3-07,P3-07: Red-team panel,"**Goal:** Live proof that injection does not flip status.
+
+**Acceptance criteria:**
+- [ ] Injected request flagged by G3
+- [ ] Status unchanged
+
+**Files:** `web/src/**`
+**Gate:** demo script
+**Depends on:** P3-01
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p3,priority:low,ui,security,wow",P3 Wow Console,low,0.5,P3-01
+P3-08,P3-08: Cost + determinism badge,"**Goal:** Show calls/tokens/$ and output hash.
+
+**Acceptance criteria:**
+- [ ] Reads usage.jsonl + manifest
+
+**Files:** `web/src/**`
+**Gate:** demo script
+**Depends on:** P2-07
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p3,priority:medium,ui,wow",P3 Wow Console,medium,0.5,P2-07
+P4-01,P4-01: Final cold-cache full run,"**Goal:** Produce final output.csv.
+
+**Acceptance criteria:**
+- [ ] G7 PASS
+- [ ] manifest recorded
+
+**Files:** `output.csv`
+**Gate:** G7
+**Depends on:** P2-09
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p4,priority:high,release",P4 Submission,high,0.5,P2-09
+P4-02,P4-02: Regenerate evaluation + usage reports,"**Goal:** Reports match the final run.
+
+**Acceptance criteria:**
+- [ ] Numbers match manifest
+
+**Files:** `code/evaluation/*.md`
+**Gate:** review
+**Depends on:** P4-01
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p4,priority:high,release",P4 Submission,high,0.25,P4-01
+P4-03,P4-03: Package code.zip (allowlist),"**Goal:** Clean submission archive.
+
+**Acceptance criteria:**
+- [ ] No dataset/venv/node_modules/.env/caches
+- [ ] Secret scan of zip clean
+
+**Files:** `code.zip`
+**Gate:** gate.py package
+**Depends on:** P4-02
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p4,priority:high,release,security",P4 Submission,high,0.25,P4-02
+P4-04,P4-04: log.txt format + PII check,"**Goal:** Transcript meets AGENTS.md §5.
+
+**Acceptance criteria:**
+- [ ] tool= and model= on every entry
+- [ ] No secrets
+
+**Files:** `log.txt`
+**Gate:** gate.py security
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p4,priority:high,release",P4 Submission,high,0.25,
+P4-05,P4-05: agent-trace.zip,"**Goal:** Trace submitted per instructions.
+
+**Acceptance criteria:**
+- [ ] Redacted; no auth files
+
+**Files:** `(outside repo)`
+**Gate:** manual
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p4,priority:medium,release",P4 Submission,medium,0.25,
+P4-06,P4-06: AI interview notes,"**Goal:** Crisp narrative for the interview.
+
+**Acceptance criteria:**
+- [ ] Architecture, gates, security, eval, trade-offs, future
+
+**Files:** `docs/interview_notes.md`
+**Gate:** review
+**Depends on:** P4-02
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p4,priority:medium,docs",P4 Submission,medium,0.5,P4-02
+P5-01,P5-01: Continuous deletion assurance (stream mode),"**Goal:** Audit on every deletion event; alert on resurrection.
+
+**Acceptance criteria:**
+- [ ] Design note
+
+**Files:** `docs/`
+**Gate:** -
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p5,priority:low,future",P5 Future Scope,low,0,
+P5-02,P5-02: Live read-only connectors,"**Goal:** Postgres/Elastic/S3/Zendesk/Segment adapters emitting Fact.
+
+**Acceptance criteria:**
+- [ ] Design note
+
+**Files:** `docs/`
+**Gate:** -
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p5,priority:low,future",P5 Future Scope,low,0,
+P5-03,P5-03: Policy-as-code + jurisdiction packs,"**Goal:** Versioned policy DSL (GDPR/CCPA/DPDP).
+
+**Acceptance criteria:**
+- [ ] Design note
+
+**Files:** `docs/`
+**Gate:** -
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p5,priority:low,future",P5 Future Scope,low,0,
+P5-04,"P5-04: Signed, hash-chained audit receipts","**Goal:** Tamper-evident completion certificates.
+
+**Acceptance criteria:**
+- [ ] Design note
+
+**Files:** `docs/`
+**Gate:** -
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p5,priority:low,future,security",P5 Future Scope,low,0,
+P5-05,P5-05: Human-approved auto-remediation,"**Goal:** Execute plans via runbooks, then auto-verify.
+
+**Acceptance criteria:**
+- [ ] Design note
+
+**Files:** `docs/`
+**Gate:** -
+**Depends on:** none
+**Design:** docs/architecture.md · **Plan:** docs/delivery_plan.md","phase:p5,priority:low,future",P5 Future Scope,low,0,
