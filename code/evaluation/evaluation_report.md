@@ -14,7 +14,7 @@
 | Run | Step precision | Step recall | Step F1 | Field accuracy |
 |---|---|---|---|---|
 | P1 baseline (default) | 0.994 | 0.896 | **0.943** | **0.830** |
-| P1 baseline (`--strict-temporal`) | 0.941 | 0.824 | 0.878 | 0.753 |
+| P1 baseline (`--strict-temporal`) | 0.994 | 0.870 | 0.928 | 0.776 |
 
 Both readings of the late-evidence rule are reported (D-017). Default: files captured after `audit_at` may reveal which resources belong to the person, but state and citations use only files captured on or before `audit_at`. Strict: late files are ignored entirely. The default matches the labeled samples better, because several expected resources are linked only through late files (F-015).
 
@@ -23,7 +23,7 @@ Both readings of the late-evidence rule are reported (D-017). Default: files cap
 | Run | Exact `steps_json` match |
 |---|---|
 | P1 baseline (default) | **0.531** (17 of 32 cases) |
-| P1 baseline (`--strict-temporal`) | 0.406 |
+| P1 baseline (`--strict-temporal`) | 0.500 (16 of 32 cases) |
 
 ## 4. Full-dataset run (518 requests)
 
