@@ -30,9 +30,11 @@ def _rx(*parts):
 
 def normalize(text: str) -> str:
     """casefold, strip accents from Latin letters only (keeps kana dakuten), unify apostrophes, collapse spaces."""
-    t = unicodedata.normalize("NFD", (text or "").casefold().replace("’", "'").replace("‘", "'"))
+    t = unicodedata.normalize("NFKD", (text or "").casefold().replace("’", "'").replace("‘", "'"))
     out = []
     for ch in t:
+        if unicodedata.category(ch) == "Cf":  # zero-width / soft hyphen can split an injection marker
+            continue
         if unicodedata.combining(ch) and out and out[-1] < "ɐ":
             continue
         out.append(ch)

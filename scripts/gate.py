@@ -30,7 +30,8 @@ SECRET_PATTERNS = [re.compile(p) for p in (
     r"github_pat_[A-Za-z0-9_]{30,}",
     r"\bAKIA[0-9A-Z]{16}\b",
     r"-----BEGIN [A-Z ]*PRIVATE KEY-----",
-    r"(?i)(api[_-]?key|secret|token|password)\s*[:=]\s*['\"][^'\"\s]{16,}['\"]",
+    # also matches the JSON-escaped form found in session transcripts: \"api_key\": \"value\" (T18)
+    r"(?i)(api[_-]?key|secret|token|password)\\?['\"]?\s*[:=]\s*\\?['\"][^'\"\s\\]{16,}",
 )]
 UNSAFE_PATTERNS = [re.compile(p) for p in (
     r"\beval\(", r"\bexec\(", r"\bpickle\.loads?\(", r"shell\s*=\s*True", r"\bos\.system\(",

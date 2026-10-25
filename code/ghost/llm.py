@@ -83,6 +83,9 @@ def api_key(role: str) -> str:
 
 
 def _redact(text: str) -> str:
+    """Strip nvapi- keys and the exact key values in the environment (a server may echo a key of any shape)."""
+    for k in {v for n, v in os.environ.items() if n.startswith("NVIDIA_API_KEY") and len(v) >= 8}:
+        text = text.replace(k, "[REDACTED]")
     return _KEY_PATTERN.sub("nvapi-[REDACTED]", text)
 
 
@@ -219,7 +222,7 @@ class Client:
             try:
                 status, raw = self.transport(url, headers, body, TIMEOUT_S)
             except TimeoutError as e:
-                last = f"timeout: {e}"
+                last = f"timeout: {_redact(str(e))}"
                 continue
             if status == 200:
                 out = json.loads(raw)
