@@ -64,3 +64,6 @@ F-015 conflicts with AGENTS.md "evidence created later must not change the answe
 
 **D-018 — Evidence ingest split into three parsers on one shared contract** · 2026-10-25 · accepted
 #14 covered four file families and ~3,200 rows, too much for one agent. → `evidence.py` owns `Fact`, `Coverage`, `system_for`, `norm_keys`, `is_null` and the `ingest` dispatcher (PNG/PDF deferred to P2-02; parser errors quarantine one file). `ev_sql.py`, `ev_json.py` and `ev_text.py` each implement `parse(path, meta) -> (facts, coverage)` and can be built in parallel (#59–#61).
+
+**D-019 — Parallel agent cap raised from 3 to 5** · 2026-10-25 · accepted (user decision, supersedes the cap in D-014)
+Users instruction "make 5 agents now at work". Rules unchanged: dependency-free issues, disjoint files, one worktree per agent, rebase from origin/develop, coordinator merges one at a time. The 5-wide batch is costlier against the model session limit; a limit hit pauses all agents (it happened once, 3 agents), and they resume with SendMessage after the reset.
