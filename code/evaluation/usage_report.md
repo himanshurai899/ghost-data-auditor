@@ -4,8 +4,8 @@
 
 ## 1. Final full-dataset run (the run that produced `output.csv`)
 
-- Run `20261025T141045Z-26f4f0` at git `d986fb9`, mode: offline (cache-only, fails closed on a miss).
-- Requests: 518 · model calls: 0 (0 served from cache, 0 live) · total tokens: 0
+- Run `20261025T143154Z-dc5628` at git `55859d0`, mode: offline (cache-only, fails closed on a miss).
+- Requests: 32 · model calls: 0 (0 served from cache, 0 live) · total tokens: 0
 - Average tokens per request: 0.0 · estimated cost per request: $0.000000
 - Every decision in this run is deterministic code over the cached evidence facts; an offline run makes zero model calls unless a cached `--online` fallback is replayed.
 

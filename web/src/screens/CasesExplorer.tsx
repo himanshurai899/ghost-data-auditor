@@ -1,23 +1,20 @@
-// Placeholder Cases screen; the case-explorer PR replaces its registry entry.
+// Cases explorer: filterable table + the selected case's detail (steps, resurrection timeline) and identity graph.
 import { useEffect, useState } from 'react'
-import { getCase, getCases } from '../api'
-import type { CaseDetail, CaseRow, ScreenProps, Status } from '../types'
+import { getCases } from '../api'
+import type { CaseRow, ScreenProps, Status } from '../types'
+import CaseDetail from './CaseDetail'
+import IdentityGraph from './IdentityGraph'
 
 const STATUSES: Status[] = ['COMPLETE', 'INCOMPLETE', 'NOT_APPLICABLE']
 
-export function CasesPlaceholder({ runId, caseId, setCaseId, filter, setFilter }: ScreenProps) {
+export function CasesExplorer({ runId, caseId, setCaseId, filter, setFilter }: ScreenProps) {
   const [rows, setRows] = useState<CaseRow[]>([])
   const [err, setErr] = useState('')
-  const [detail, setDetail] = useState<CaseDetail | null>(null)
 
   useEffect(() => {
     if (!runId) return
     getCases(runId, filter).then((r) => { setRows(r); setErr('') }).catch((e) => setErr(String(e)))
   }, [runId, filter])
-  useEffect(() => {
-    setDetail(null)
-    if (runId && caseId) getCase(runId, caseId).then(setDetail).catch((e) => setErr(String(e)))
-  }, [runId, caseId])
 
   if (!runId) return <p className="muted">Select or start a run.</p>
   return (
@@ -50,8 +47,9 @@ export function CasesPlaceholder({ runId, caseId, setCaseId, filter, setFilter }
         </div>
         {caseId && (
           <aside aria-label="Case detail" className="card">
-            <h3>{caseId}</h3>
-            <pre>{detail ? JSON.stringify(detail, null, 2) : 'Loading...'}</pre>
+            <CaseDetail runId={runId} caseId={caseId} />
+            <h3>Identity graph</h3>
+            <IdentityGraph runId={runId} caseId={caseId} />
           </aside>
         )}
       </div>

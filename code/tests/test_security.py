@@ -378,14 +378,17 @@ def _fact(eid, rid, cap, obs="PRESENT", keys=None):
 def test_t7_late_file_is_never_cited(strict):
     facts = [_fact("early", "r1", EARLY), _fact("late", "r1", LATE, "ABSENT"), _fact("late2", "r2", LATE)]
     linked = reasoning.link(SUBJ, facts, REQ, AUD, strict_temporal=strict)
-    assert {f.evidence_id for f in linked.facts} == {"early"}
+    # default mode keeps a stateless stub ("" id) for the late-only resource r2; strict mode discovers nothing late
+    assert {f.evidence_id for f in linked.facts} == ({"early"} if strict else {"early", ""})
     verdicts = reasoning.evaluate(list(linked.facts) + facts, RULES, AUD)
-    assert [(v.resource_id, v.evidence_id, v.current_state) for v in verdicts] == [("r1", "early", "PRESENT")]
+    cited = {v.resource_id: (v.evidence_id, v.current_state) for v in verdicts}
+    assert cited["r1"] == ("early", "PRESENT")                       # state and citation come only from the early file
+    assert all(ev in ("early", "") for ev, _ in cited.values())      # no late evidence id is ever cited
 
 
 def test_t7_evidence_captured_exactly_after_cutoff_by_one_second_is_excluded():
     f = _fact("edge", "r1", "2026-04-01T00:00:01Z")
-    assert reasoning.link(SUBJ, [f], REQ, AUD).facts == ()
+    assert all(x.evidence_id == "" and x.observation == "UNKNOWN" for x in reasoning.link(SUBJ, [f], REQ, AUD).facts)
     assert reasoning.evaluate([f], RULES, AUD) == []
 
 

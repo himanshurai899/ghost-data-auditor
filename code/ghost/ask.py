@@ -151,19 +151,25 @@ def answer(question: str, trail_events: list[dict], client, *, run_id: str = "ad
     return {"answer": mask_text(text), "citations": cites, "refused": False}
 
 
+try:  # module level so FastAPI can resolve the annotation under `from __future__ import annotations`
+    from pydantic import BaseModel, ConfigDict, Field
+
+    class AskRequest(BaseModel):
+        model_config = ConfigDict(extra="forbid")
+        run_id: str = Field(max_length=64)
+        question: str = Field(max_length=500)
+except ImportError:  # console extras not installed; the pure answer() core still works
+    AskRequest = None  # type: ignore
+
+
 def register(app, deps) -> None:
     """Mount POST /api/ask on a FastAPI app. deps: load_trail, validate_run_id, mask_text, runs_dir."""
     from fastapi import HTTPException
-    from pydantic import BaseModel
-
-    class Ask(BaseModel):
-        run_id: str
-        question: str
 
     state = {"client": None, "tokens": 10.0, "t": time.monotonic()}
 
     @app.post("/api/ask")
-    def ask(req: Ask):
+    def ask(req: AskRequest):
         now = time.monotonic()  # token bucket: 10 questions/minute per process
         state["tokens"] = min(10.0, state["tokens"] + (now - state["t"]) / 6.0)
         state["t"] = now

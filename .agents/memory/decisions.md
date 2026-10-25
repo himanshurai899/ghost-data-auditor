@@ -70,3 +70,9 @@ Users instruction "make 5 agents now at work". Rules unchanged: dependency-free 
 
 **D-020 — Testing deferred to phase boundaries (suspends D-008 per-issue TDD)** · 2026-10-25 · accepted (user decision)
 User: "skip testing right now, focus on code completion"; "full suite testing only after each phase code completion". → Agents write complete working code, do a quick manual smoke run only, and do not write tests or run pytest/gate.py per issue. The coordinator merges PRs after a read-through, without re-running the suite. At each phase end (P1, P2, ...) we run the full suite and `gate.py all`, write the missing tests, and fix what breaks BEFORE the release branch. Agents that already finished tests (#16, #17, #18, #15) keep them. Risk accepted: regressions surface at the phase gate, not per PR.
+
+**D-021 — Late-only resources stay in the case as stateless stubs with an empty evidence_id** · 2026-10-25 · accepted
+PR #81 (retained audit records dropped out of INCOMPLETE cases) keeps a resource that is discovered only through a post-audit file as an UNKNOWN stub. The stub's `evidence_id` is cleared (security review at phase end) so a late id can never travel into a citation (T7). Strict mode makes no stubs. Tests updated accordingly.
+
+**D-022 — Console topic guard is deterministic first** · 2026-10-25 · accepted
+The NVIDIA topic-control model returned HTTP 500 during build. `ask.check_guard` now refuses off-topic questions by keyword pre-filter before any model call and stops calling the guard endpoint after its first hard failure; the endpoint remains a second opinion when it works.

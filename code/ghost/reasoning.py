@@ -49,13 +49,13 @@ def link(subject, facts, requested_at: str, audit_at: str, strict_temporal: bool
     cited = sorted((f for f in facts if (f.system_id, f.resource_id) in found and ts(f.captured_at) <= aud),
                    key=lambda f: (f.system_id, f.resource_id, ts(f.observed_at), f.evidence_id))
     # A resource known only from late files has no citable state, but it still belongs to the case (F-015): keep a
-    # stateless stub (observation UNKNOWN, never cited) so policy still verifies it.
+    # stateless stub (observation UNKNOWN, empty evidence_id so a late id can never travel into a citation) so policy still verifies it.
     have = {(f.system_id, f.resource_id) for f in cited}
     stubs = {}
     for f in facts:
         k = (f.system_id, f.resource_id)
         if k in found and k not in have and f.category and k not in stubs:
-            stubs[k] = replace(f, captured_at=audit_at, observed_at=audit_at, observation="UNKNOWN", pii_fields=frozenset())
+            stubs[k] = replace(f, evidence_id="", captured_at=audit_at, observed_at=audit_at, observation="UNKNOWN", pii_fields=frozenset())
     cited += sorted(stubs.values(), key=lambda f: (f.system_id, f.resource_id))
     return Linked(frozenset(found), tuple(cited), frozenset(found - found_citable))
 
