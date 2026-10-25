@@ -97,7 +97,7 @@ def scan_pii(files, root, emails: set[str]) -> list[str]:
     return hits
 
 
-REQUIRED_IGNORED = (".env", ".env.local", "runs/", ".cache/", ".venv/", "code.zip", ".claude/worktrees/",
+REQUIRED_IGNORED = (".env", ".env.local", "runs/", ".cache/", ".venv/", "code.zip", ".claude/worktrees/", "2026-01-01-000000-pastedcontent-x.txt", ".ghost/",
                     ".claude/settings.local.json", "web/node_modules/", "web/dist/", "agent-trace/", ".ghost/")
 
 
