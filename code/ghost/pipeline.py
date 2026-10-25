@@ -4,7 +4,7 @@ import hashlib
 import subprocess
 from pathlib import Path
 
-from . import evidence, identity, intent, llm, planner, reasoning
+from . import evidence, identity, intent, llm, orphan, planner, reasoning
 from .audit import Trail, new_run_id
 from .contract import (DATASET, REPO, check_inputs, load_evidence_index, load_requests, read_csv, validate_output,
                        validate_row, write_output, ts)
@@ -49,7 +49,9 @@ def run(requests_path: Path, out_path: Path, runs_dir: Path = REPO / "runs", cas
     if cases:
         wanted = set(cases)
         errors += [f"unknown case {c}" for c in sorted(wanted - {r["case_id"] for r in requests})]
-        requests = [r for r in requests if r["case_id"] in wanted]
+        all_requests, requests = requests, [r for r in requests if r["case_id"] in wanted]
+    else:
+        all_requests = requests
     if errors:
         abort("G1", f"Input gate failed: {errors[0]}", errors)
     trail.event("load", f"Loaded {len(requests)} requests with valid schema and timestamps.", gate="G1", verdict="PASS")
@@ -65,6 +67,7 @@ def run(requests_path: Path, out_path: Path, runs_dir: Path = REPO / "runs", cas
     ctx = {"identity": identity.build_index(), "facts": facts, "coverage": coverage, "rules": read_csv(DATASET / "deletion_rules.csv"),
            "evidence_index": load_evidence_index(), "offline": offline,
            "strict_temporal": strict_temporal}
+    ctx["orphans"] = orphan.discover(all_requests, ctx)
     rows, g6_failures = [], 0
     for req in requests:
         status, steps = audit_case(req, ctx, trail)
@@ -118,6 +121,8 @@ def audit_case(req: dict, ctx: dict, trail: Trail) -> tuple[str, list[dict]]:
     # S4 Link + G5 (hard temporal filter inside reasoning.link)
     linked = (reasoning.link(subject, ctx["facts"], req["requested_at"], req["audit_at"], ctx["strict_temporal"])
               if subject else reasoning.Linked(frozenset(), (), frozenset()))
+    if subject:
+        linked = orphan.extend(linked, ctx.get("orphans", {}).get(cid, ()), ctx["facts"], req["audit_at"])
     facts = list(linked.facts)
     breach = any(ts(f.captured_at) > ts(req["audit_at"]) for f in facts)  # the hard filter makes this impossible
     trail.event("link", f"Linked {len(linked.resources)} resources, {len(facts)} citable facts "
@@ -126,7 +131,7 @@ def audit_case(req: dict, ctx: dict, trail: Trail) -> tuple[str, list[dict]]:
                 verdict="WARN" if breach else "PASS")
 
     # S5-S7
-    verdicts = reasoning.evaluate(facts, ctx["rules"], req["audit_at"], ctx["coverage"])
+    verdicts = reasoning.evaluate(facts, ctx["rules"], req["audit_at"], ctx["coverage"], ctx["facts"])
     try:
         return planner.plan(verdicts)
     except ValueError as e:  # one unplannable case must not abort the run
