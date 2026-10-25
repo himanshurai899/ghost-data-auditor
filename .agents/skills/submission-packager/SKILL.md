@@ -12,7 +12,7 @@ description: Produces the final HackerRank submission — cold full run, regener
 3. `python scripts/gate.py all` must show contract, eval, security and package all PASS.
 4. Review the `code.zip` listing. It must contain `code/**`, `README.md` and `evaluation/*.md`. It must contain **no** `dataset/`, `.env`, `runs/`, `.cache/`, `node_modules/`, venvs or nested zips.
 5. Re-read the AGENTS.md "Pre-submission checklist" in the root README.
-6. Remind the user about `agent-trace.zip` (see `agent_trace_instructions.md`). The user creates it; agents never copy auth files.
+6. **Agent trace.** A Stop hook (`.claude/settings.local.json` → `scripts/sync_trace.py`) mirrors this project's Claude Code session files, subagent transcripts and tool outputs into the gitignored `agent-trace/claude-code/` after every turn, with secrets redacted (T18). The user also runs `/export` and saves the readable transcript into `agent-trace/claude-code/`. Then run `python scripts/sync_trace.py` once more, which also redacts files saved there by hand. Verify with `grep -rE "nvapi-[A-Za-z0-9_-]{20,}" agent-trace` (must print nothing). Then zip: `Compress-Archive -Path .gent-trace -DestinationPath .gent-trace.zip -Force`. Agents never copy auth files. Recommend rotating the keys after submission.
 7. Submission URL (always give it in full): https://www.hackerrank.com/contests/hackerrank-orchestrate-october26/challenges/ghost-data-still-exists
 
 ## Never

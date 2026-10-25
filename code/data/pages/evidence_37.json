@@ -1,0 +1,110 @@
+[
+ {
+  "captured_at": "2026-09-05T07:00:00Z",
+  "category": "SECURITY_AUDIT_LOG",
+  "evidence_id": "evidence_37",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-09-05T07:00:00Z",
+  "pii_fields": [],
+  "resource_id": "audit_record_001",
+  "subject_keys": [
+   [
+    "user_id",
+    "user_03"
+   ]
+  ],
+  "system_id": "security_service"
+ },
+ {
+  "captured_at": "2026-09-05T07:00:00Z",
+  "category": "SECURITY_AUDIT_LOG",
+  "evidence_id": "evidence_37",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-09-05T07:00:00Z",
+  "pii_fields": [],
+  "resource_id": "audit_record_002",
+  "subject_keys": [
+   [
+    "user_id",
+    "user_03"
+   ]
+  ],
+  "system_id": "security_service"
+ },
+ {
+  "captured_at": "2026-09-05T07:00:00Z",
+  "category": "SECURITY_AUDIT_LOG",
+  "evidence_id": "evidence_37",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-09-05T07:00:00Z",
+  "pii_fields": [],
+  "resource_id": "audit_record_003",
+  "subject_keys": [
+   [
+    "user_id",
+    "user_03"
+   ]
+  ],
+  "system_id": "security_service"
+ },
+ {
+  "captured_at": "2026-09-05T07:00:00Z",
+  "category": "SECURITY_AUDIT_LOG",
+  "evidence_id": "evidence_37",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-09-05T07:00:00Z",
+  "pii_fields": [],
+  "resource_id": "audit_record_004",
+  "subject_keys": [
+   [
+    "user_id",
+    "user_03"
+   ]
+  ],
+  "system_id": "security_service"
+ },
+ {
+  "captured_at": "2026-09-05T07:00:00Z",
+  "category": "SECURITY_AUDIT_LOG",
+  "evidence_id": "evidence_37",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-09-05T07:00:00Z",
+  "pii_fields": [],
+  "resource_id": "audit_record_005",
+  "subject_keys": [
+   [
+    "user_id",
+    "user_03"
+   ]
+  ],
+  "system_id": "security_service"
+ },
+ {
+  "captured_at": "2026-09-05T07:00:00Z",
+  "category": "SECURITY_AUDIT_LOG",
+  "evidence_id": "evidence_37",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-09-05T07:00:00Z",
+  "pii_fields": [],
+  "resource_id": "audit_record_006",
+  "subject_keys": [
+   [
+    "user_id",
+    "user_03"
+   ]
+  ],
+  "system_id": "security_service"
+ }
+]

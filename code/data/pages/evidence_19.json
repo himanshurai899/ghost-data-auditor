@@ -1,0 +1,27 @@
+[
+ {
+  "captured_at": "2026-07-13T10:00:00Z",
+  "category": "ANALYTICS_PROFILE",
+  "evidence_id": "evidence_19",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-07-13T10:00:00Z",
+  "pii_fields": [
+   "email",
+   "user_id"
+  ],
+  "resource_id": "analytics_7438",
+  "subject_keys": [
+   [
+    "email_hash",
+    "09f05b9fb59a2493e9349bbfeac4ab5288a534689c8ecbe44bcc106f5ede50a7"
+   ],
+   [
+    "user_id",
+    "user_20"
+   ]
+  ],
+  "system_id": "analytics_platform"
+ }
+]

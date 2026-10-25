@@ -1,0 +1,38 @@
+[
+ {
+  "captured_at": "2026-08-07T08:00:00Z",
+  "category": "DATA_FLOW",
+  "evidence_id": "evidence_14",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "FLOW_ACTIVE",
+  "observed_at": "2026-08-07T08:00:00Z",
+  "pii_fields": [],
+  "resource_id": "data_flow_1121",
+  "subject_keys": [
+   [
+    "email_hash",
+    "ea61073600454d4cb320cd63802b6e63ceb0a1398a7b4dd10049a71729471d00"
+   ]
+  ],
+  "system_id": "integration_service"
+ },
+ {
+  "captured_at": "2026-08-07T08:00:00Z",
+  "category": "DATA_FLOW",
+  "evidence_id": "evidence_14",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "FLOW_ACTIVE",
+  "observed_at": "2026-08-07T08:00:00Z",
+  "pii_fields": [],
+  "resource_id": "data_flow_9846",
+  "subject_keys": [
+   [
+    "email_hash",
+    "3a998570469df6b3cf40bb58e9b2a55e4890cded9f801df993ed6584f990826c"
+   ]
+  ],
+  "system_id": "integration_service"
+ }
+]

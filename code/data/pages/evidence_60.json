@@ -1,0 +1,24 @@
+[
+ {
+  "captured_at": "2026-09-16T07:20:00Z",
+  "category": "MARKETING_PROFILE",
+  "evidence_id": "evidence_60",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-09-16T07:20:00Z",
+  "pii_fields": [],
+  "resource_id": "marketing_001",
+  "subject_keys": [
+   [
+    "email_hash",
+    "8e7b1729854eb17c37d2f8a5d8a731d11fcb62d02467d7f9fea71520227230b4"
+   ],
+   [
+    "phone",
+    "821058379451"
+   ]
+  ],
+  "system_id": "marketing_platform"
+ }
+]

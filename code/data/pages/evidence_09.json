@@ -1,0 +1,42 @@
+[
+ {
+  "captured_at": "2026-09-01T06:00:00Z",
+  "category": "SEARCH_INDEX_ENTRY",
+  "evidence_id": "evidence_09",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-09-01T06:00:00Z",
+  "pii_fields": [],
+  "resource_id": "search_1874",
+  "subject_keys": [
+   [
+    "email_hash",
+    "f244251fefdc64b69254a9a865e1517f5be0000743ea7d2fdc0f5b3adb0fda5d"
+   ]
+  ],
+  "system_id": "search_service"
+ },
+ {
+  "captured_at": "2026-09-01T06:00:00Z",
+  "category": "SEARCH_INDEX_ENTRY",
+  "evidence_id": "evidence_09",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-09-01T06:00:00Z",
+  "pii_fields": [],
+  "resource_id": "search_428",
+  "subject_keys": [
+   [
+    "email_hash",
+    "7afbbca4e0e4d5228a422ca39f5453505d365849ba5e20a288a203f0ba505c3d"
+   ],
+   [
+    "user_id",
+    "user_13"
+   ]
+  ],
+  "system_id": "search_service"
+ }
+]

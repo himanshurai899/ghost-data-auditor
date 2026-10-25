@@ -75,7 +75,7 @@ def render_report(events: list[dict], manifest: dict) -> str:
     out += [f"| {r} | " + " | ".join(str(matrix[(r, s)]) for s in STATUSES) + " |" for r in reported]
 
     def flags(evs):
-        bad = [f"{'❌' if e['verdict'] == 'FAIL' else '⚠️'} {e['gate']}" for e in evs if e["verdict"] in ("WARN", "FAIL")]
+        bad = [f"{'❌' if e['verdict'] == 'FAIL' else '⚠️'} {e['gate'] or e['stage']}" for e in evs if e["verdict"] in ("WARN", "FAIL")]
         return " ".join(bad) or "✅"
 
     out += ["", "## Cases", "", "| Case | Reported | Audited | Steps | Gates |", "|---|---|---|---|---|"]

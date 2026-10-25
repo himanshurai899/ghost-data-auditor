@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from ghost import llm  # noqa: E402
 from ghost.contract import DATASET, REPO  # noqa: E402
 from ghost.pipeline import GateFailure, run  # noqa: E402
 
@@ -19,9 +20,12 @@ def main() -> int:
     ap.add_argument("--out", type=Path, default=REPO / "output.csv")
     ap.add_argument("--cases", nargs="*", help="only these case ids")
     ap.add_argument("--online", action="store_true", help="allow LLM calls (needs NVIDIA_API_KEY); default is offline")
+    ap.add_argument("--strict-temporal", action="store_true",
+                    help="discover resources only from evidence captured at or before audit_at (default also allows later files)")
     a = ap.parse_args()
+    llm.load_env()  # gitignored .env; real environment variables take precedence
     try:
-        m = run(a.requests, a.out, cases=a.cases, offline=not a.online)
+        m = run(a.requests, a.out, cases=a.cases, offline=not a.online, strict_temporal=a.strict_temporal)
     except GateFailure as e:
         print(f"GATE FAILURE {e}", file=sys.stderr)
         return 2

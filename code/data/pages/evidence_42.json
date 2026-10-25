@@ -1,0 +1,20 @@
+[
+ {
+  "captured_at": "2026-03-10T06:00:00Z",
+  "category": "ACCOUNT_TOMBSTONE",
+  "evidence_id": "evidence_42",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "REDACTED",
+  "observed_at": "2026-03-10T06:00:00Z",
+  "pii_fields": [],
+  "resource_id": "tombstone_17",
+  "subject_keys": [
+   [
+    "user_id",
+    "user_17"
+   ]
+  ],
+  "system_id": "identity_service"
+ }
+]

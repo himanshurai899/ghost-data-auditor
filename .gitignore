@@ -21,6 +21,10 @@ venv/
 web/node_modules/
 web/dist/
 
+# AI agent local state: parallel-agent worktrees and personal permission settings
+.claude/worktrees/
+.claude/settings.local.json
+
 # os/editor
 .DS_Store
 Thumbs.db

@@ -1,0 +1,24 @@
+[
+ {
+  "captured_at": "2026-07-18T11:00:00Z",
+  "category": "USER_EXPORT",
+  "evidence_id": "evidence_18",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-07-18T11:00:00Z",
+  "pii_fields": [],
+  "resource_id": "export_1842",
+  "subject_keys": [
+   [
+    "email_hash",
+    "0649eddaba37af918d82b64da379e6623d34cf290b2a26ecbe53bafc1484f8af"
+   ],
+   [
+    "user_id",
+    "user_18"
+   ]
+  ],
+  "system_id": "export_service"
+ }
+]

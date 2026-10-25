@@ -62,3 +62,15 @@ def test_package_allowlist_excludes_junk(tmp_path):
         write(tmp_path, rel, "x")
     names = sorted(gate.package_members(tmp_path))
     assert names == ["README.md", "evaluation/evaluation_report.md", "main.py"]
+
+
+def test_required_local_paths_are_gitignored():
+    assert gate.unignored(ROOT) == []
+
+
+def test_unignored_flags_missing_entries(tmp_path):
+    import subprocess
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / ".gitignore").write_text(".env\n", encoding="utf-8")
+    missing = gate.unignored(tmp_path)
+    assert ".env" not in missing and ".claude/worktrees/" in missing and "runs/" in missing

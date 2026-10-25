@@ -1,6 +1,5 @@
-# The MVP pipeline (python code/main.py --offline) uses only the standard library.
+# The pipeline, including every NVIDIA call (ghost/llm.py uses stdlib urllib), needs only the standard library.
 # These are imported lazily by the stages that need them.
-openai==3.28.0      # NVIDIA build is OpenAI-compatible (P2-01)
 pypdf==6.20.0       # PDF text layer (P2-02)
 fastapi==0.143.0    # console API (P3-01)
 uvicorn==0.54.0     # console API server (P3-01)
