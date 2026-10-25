@@ -31,7 +31,7 @@ export default function Settings(_: ScreenProps) {
 
   const say = (text: string, ref?: string) => { setToast({ text, ref }); clearTimeout(timer.current); timer.current = setTimeout(() => setToast(null), 8000) }
 
-  const storage = data?.keys[0]?.storage
+  const storage = data?.storage ?? data?.keys[0]?.storage
   const banner = !data ? null : !data.vault_available
     ? { tone: 'warn', head: 'Unavailable: use .env', text: 'No encryption backend on this machine. Saving keys is disabled; put NVIDIA_API_KEY in your .env file.' }
     : { tone: 'ok', head: storage ? KIND[storage] ?? `Encrypted (${storage})` : 'Encrypted vault available', text: 'Keys are stored encrypted on the server and shown only as a reference.' }

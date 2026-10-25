@@ -107,7 +107,8 @@ def register(app, deps):
                for r in vault.ROLES}
         return scrub({"keys": vault.list_entries(), "active": s["active"], "models": llm.models(),
                       "base_url": llm.base_url(), "retrieval_url": llm.retrieval_url(), "env_keys": env,
-                      "vault_available": vault.available()})
+                      "vault_available": vault.available(), "storage": vault.storage_kind(),
+                      "defaults": {r: d for r, (_, d) in llm.DEFAULT_MODELS.items()}})
 
     @app.post("/api/settings/keys")
     def add_key(body: KeyIn):
