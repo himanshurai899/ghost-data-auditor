@@ -65,3 +65,13 @@ Keys are NEVER returned by any endpoint. The vault stores each secret encrypted 
 - Tooltips: open on hover and on keyboard focus, toggle on click/tap, close on Escape and outside click, `role="tooltip"` + `aria-describedby`, never the only way to reach information (the same text is in the page or a legend table).
 - Every chart has a table or text alternative; never colour alone (letters, icons, patterns).
 - Loading skeletons for anything > 300 ms; empty and error states with a next action; reserve space to avoid layout jumps.
+
+## Verification status (2026-10-26)
+
+Real-browser checks (Chrome headless over the DevTools protocol, `scripts/ui_check.mjs`; start the API on :8000 and `npm run dev`, then `node scripts/ui_check.mjs`):
+
+- Landing pipeline: 9 stages + 7 gates, each opens an informative tooltip on hover, stays inside the viewport and closes on leave (16/16); keyboard focus shows it and links it with `aria-describedby`; Escape closes; click pins and an outside click closes; a tap works on a 375px touch device in the dark theme.
+- Layout: no horizontal page overflow at 375px and 768px, light and dark, on all nine routes against the 518-case run (and `case_33`, `case_46`). The one real defect found (Cost page 592px wide: absolutely positioned screen-reader text inside table cells resolved against the page) is fixed in `.tablewrap`.
+- Screenshots reviewed at 375px (light): landing hero and KPIs, Case page with the ranked evidence chain.
+
+Known limits: Tab order puts the nav and top bar before the page content (22 Tab presses to the first pipeline node; the skip link covers it); the light theme was checked structurally and by screenshot, not with a contrast-measuring tool; failure and rate-limit states of the Settings connection test were not triggered.
