@@ -94,6 +94,8 @@ def ingest(trail, manifest=None, parsers=None) -> tuple[list[Fact], list[Coverag
             continue
         facts += f
         coverage += c
+    from . import activity  # lazy: activity imports Fact from this module
+    facts += activity.load()
     for fid, reason in quarantined:
         trail.event("ingest", f"Quarantined {fid}: {reason}", verdict="WARN")
     if deferred:
