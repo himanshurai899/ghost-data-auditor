@@ -62,7 +62,9 @@ def test_ingest_dispatches_by_suffix_and_quarantines_failures():
                              "evidence/../../AGENTS.md")
     t = Trail()
     facts, coverage, quarantined = ev.ingest(t, manifest=manifest, parsers={".log": ok, ".sql": boom})
-    assert seen == ["evidence_1"] and len(facts) == 1 and coverage == []
+    file_facts = [f for f in facts if f.evidence_kind == "FILE"]   # activity facts are appended too (P1-06)
+    assert seen == ["evidence_1"] and len(file_facts) == 1 and coverage == []
+    assert all(f.evidence_kind == "ACTIVITY" for f in facts if f not in file_facts)
     assert [q for q, _ in quarantined] == ["evidence_2", "evidence_4"]           # parser error + unsafe path
     assert any("deferred" in s for _, s, _ in t.events)                          # png waits for P2-02
 
