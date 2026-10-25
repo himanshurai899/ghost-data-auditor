@@ -89,7 +89,7 @@ Threat model T1 to T18 in architecture.md §7. Concrete controls:
 - **Prompt injection:** request text is data, output is forced to an enum and validated; C1 tests it.
 - **Console:** loopback only, per-start token on POST, Host and CORS allow-lists, regex-validated ids, `extra="forbid"` bodies, CSP, NVIDIA key server-side only [console_api.md].
 
-The security-review pack (PR #88) fixed 9 findings [log.txt]. Severity per finding is not in the repo (the brief says 2 were high; which two is unverified).
+The security-review pack (PR #88) fixed 9 findings, 2 high, 5 medium, 2 low; the full table with severities is in `.agents/memory/pitfalls.md` ("Security review of 2026-10-25"). The two high findings: quadratic email regexes that a long token without an "@" could use to hang a run, and a secret pattern that missed JSON-escaped values in session transcripts.
 
 | # | Finding fixed |
 |---|---|
@@ -107,7 +107,7 @@ Privacy of our own system: it holds personal data in `runs/` and caches. Those a
 
 ## 7. Cost and tokens
 
-- Final full run `20261025T143154Z-dc5628` was offline: 0 model calls, 0 tokens, $0 [usage_report.md §1]. (The run listed there reports 32 requests; the 518-row run is counted in evaluation_report §4. Reconcile before submission, unverified.)
+- Final full run `20261025T143538Z-ef69e7` (518 requests, cold cache, offline): 0 model calls, 0 tokens, $0 [usage_report.md §1, evaluation_report.md §4]. The one-time page-cache build was 11 Nemotron Parse calls, token counts n/a (raw responses were not retained).
 - One-time build: 11 Nemotron Parse calls to read the screenshots; token counts were not retained, so they are n/a, not estimated [usage_report.md §2].
 - Billing: NVIDIA build free tier, $0 billed [usage_report.md §3].
 - Where an LLM is used and why only there: reading images (code cannot), intent fallback for unusual wording, and the console's Q&A, which is outside the grading path. Anything that decides a status, an id or an order is code, so a model cannot corrupt a step list (D-001).
@@ -119,11 +119,11 @@ A coordinator routes every ask through a prompt-enhancer, picks a backlog issue,
 **Testing decision.** D-008 mandated TDD, and the early modules (contract, safety, scorer, identity, intent) were test-first. D-020 then deferred tests to phase boundaries at the author's request, to finish code faster; at each phase end we run the full suite and gates and fix what breaks. Cost: regressions show up at the phase gate, not per PR. At the P1 end four stale tests failed and were fixed [log.txt]; the suite is now 287 passed, 4 skipped [progress.md].
 
 **Mistakes made and fixed:**
-1. **False eval-gate regression from rounding.** A gate flagged a regression that was only metric rounding (fixed by comparing at consistent precision). Details of the fix are not in the repo files (unverified).
+1. **False eval-gate regression from rounding.** The gate reported "regressed: status 0.969 -> 0.969" because the baseline is read from the gate log at 3 decimals while the live value was exactly 0.96875. Fixed by comparing at the logged precision (`gate.regressions`, test `test_regressions`) [pitfalls.md].
 2. **Merge script closed issues before the merge landed.** A merge hit a base-branch race and failed; we added a guard so closing and cleanup happen only after the PR state is MERGED [log.txt].
 3. **Stale worktree base.** Agent worktrees started from `main`, so agents worked on old code; briefs now say to branch from `origin/develop` [pitfalls.md].
 4. **Guard endpoint outage.** The NVIDIA topic-guard model returned HTTP 500; we made the guard keyword-first and stop calling after the first hard failure (D-022).
-5. **422 from future annotations.** With `from __future__ import annotations`, FastAPI could not resolve a request model and returned 422; fixed by defining the model at module level (comment in `code/ghost/ask.py`; commit-level detail unverified).
+5. **422 from future annotations.** With `from __future__ import annotations`, FastAPI could not resolve a request model defined inside `register()`, treated it as a query parameter and returned 422 for the contract's own body; found by the live smoke test and fixed by defining `AskRequest` at module level [pitfalls.md, `code/ghost/ask.py`].
 
 Others in pitfalls.md: `case_100` sorting before `case_33`, and `.env` captured by the IDE.
 
