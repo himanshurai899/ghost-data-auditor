@@ -81,7 +81,7 @@ def _compliant(required: str, current: str, pii: frozenset) -> bool:
     return current == required
 
 
-def evaluate(facts, rules, audit_at: str, coverage=()) -> list[ResourceVerdict]:
+def evaluate(facts, rules, audit_at: str, coverage=(), all_facts=None) -> list[ResourceVerdict]:
     """S5+S6. Per (system, resource): latest citable file observation wins (ties: PRESENT beats ABSENT, then later
     evidence_id); activity claims only raise FLOW/RESTORE risks no file contradicts; omission from a later citable
     table-level snapshot proves ABSENT (F-012). Sorted by (system_id, resource_id)."""
@@ -91,6 +91,9 @@ def evaluate(facts, rules, audit_at: str, coverage=()) -> list[ResourceVerdict]:
     in_file = {}  # evidence_id -> resources it holds a row for
     for f in cites:
         in_file.setdefault(f.evidence_id, set()).add((f.system_id, f.resource_id))
+    in_all = {}  # same, over every case's facts: lets a resource with no file row of its own use a snapshot (orphans)
+    for f in (cites if all_facts is None else (g for g in all_facts if ts(g.captured_at) <= aud)):
+        in_all.setdefault(f.evidence_id, set()).add((f.system_id, f.resource_id))
     groups = {}
     for f in cites:
         groups.setdefault((f.system_id, f.resource_id), []).append(f)
@@ -108,8 +111,9 @@ def evaluate(facts, rules, audit_at: str, coverage=()) -> list[ResourceVerdict]:
         latest = ts(obs[-1].observed_at) if obs else None
         omit = []
         if kind == "RECORD":  # omission from a later, non-empty snapshot of the same system
-            omit = sorted((c for c in cov if c.system_id == sys_id and in_file.get(c.evidence_id)
-                           and (sys_id, res_id) not in in_file[c.evidence_id]
+            pool = in_file if (obs or required == "PRESENT") else in_all
+            omit = sorted((c for c in cov if c.system_id == sys_id and pool.get(c.evidence_id)
+                           and (sys_id, res_id) not in pool[c.evidence_id]
                            and (latest is None or ts(c.observed_at) > latest)),
                           key=lambda c: (ts(c.captured_at), c.evidence_id))
         if omit:
