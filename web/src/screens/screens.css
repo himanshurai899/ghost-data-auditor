@@ -1,20 +1,10 @@
-/* Showpiece screens. Tokens fall back to defaults so we do not depend on the shell's variable names. */
+/* Showpiece screens: all colours come from the shared tokens (styles/tokens.css), so both themes work. */
 :where(.screen) {
-  --s-fg: var(--text, #1f2328);
-  --s-muted: #6a737d;
-  --s-bg: var(--bg, #ffffff);
-  --s-card: color-mix(in srgb, var(--s-fg) 4%, var(--s-bg));
-  --s-line: color-mix(in srgb, var(--s-fg) 18%, transparent);
-  --s-amber: #9a6700; --s-green: #1a7f37; --s-red: #cf222e; --s-blue: #0969da; --s-ghost: #8250df;
-  --s-amber-bg: #fff8c5; --s-green-bg: #dafbe1; --s-red-bg: #ffebe9; --s-blue-bg: #ddf4ff; --s-ghost-bg: #fbefff;
-  --s-radius: 10px;
-}
-@media (prefers-color-scheme: dark) {
-  :where(.screen) {
-    --s-fg: var(--text, #e6edf3); --s-bg: var(--bg, #0d1117); --s-muted: #9198a1;
-    --s-amber: #e3b341; --s-green: #56d364; --s-red: #ff7b72; --s-blue: #79c0ff; --s-ghost: #d2a8ff;
-    --s-amber-bg: #3a2f0b; --s-green-bg: #0f2d1a; --s-red-bg: #3d1214; --s-blue-bg: #0c2d4a; --s-ghost-bg: #2a1745;
-  }
+  --s-fg: var(--text); --s-muted: var(--text-muted); --s-bg: var(--surface);
+  --s-card: var(--surface-sunken); --s-line: var(--border);
+  --s-amber: var(--warn); --s-green: var(--ok); --s-red: var(--bad); --s-blue: var(--primary-text); --s-ghost: var(--ghost);
+  --s-amber-bg: var(--warn-bg); --s-green-bg: var(--ok-bg); --s-red-bg: var(--bad-bg); --s-blue-bg: var(--info-bg); --s-ghost-bg: var(--ghost-bg);
+  --s-radius: var(--radius-lg);
 }
 .screen { color: var(--s-fg); text-align: left; display: grid; gap: 16px; font-size: 14px; line-height: 1.45; }
 .screen h2, .screen h3 { margin: 0; }
@@ -26,10 +16,10 @@
 .s-state { padding: 16px; border: 1px dashed var(--s-line); border-radius: var(--s-radius); color: var(--s-muted); }
 .s-state.err { color: var(--s-red); border-color: var(--s-red); }
 .s-demo { font-size: 11px; padding: 1px 8px; border-radius: 999px; background: var(--s-amber-bg); color: var(--s-amber); border: 1px solid currentColor; width: fit-content; }
-.screen button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--s-line); background: var(--s-card); color: inherit; padding: 6px 12px; }
+.screen button { font: inherit; cursor: pointer; min-height: 40px; border-radius: 8px; border: 1px solid var(--s-line); background: var(--s-card); color: inherit; padding: 6px 12px; }
 .screen button:hover:not(:disabled) { border-color: var(--s-blue); }
 .screen button:disabled { opacity: .5; cursor: not-allowed; }
-.screen button.primary { background: var(--s-blue); color: #fff; border-color: var(--s-blue); }
+.screen button.primary { background: var(--primary); color: var(--primary-fg); border-color: var(--primary); }
 .screen textarea { width: 100%; box-sizing: border-box; font: inherit; color: inherit; background: var(--s-bg); border: 1px solid var(--s-line); border-radius: 8px; padding: 8px; resize: vertical; }
 .screen :focus-visible { outline: 2px solid var(--s-blue); outline-offset: 2px; }
 
@@ -96,7 +86,7 @@
 
 /* ask */
 .ask-log { display: grid; gap: 10px; max-height: 55vh; overflow-y: auto; }
-.ask-q { justify-self: end; max-width: 85%; background: var(--s-blue); color: #fff; padding: 8px 12px; border-radius: 12px 12px 2px 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ask-q { justify-self: end; max-width: 85%; background: var(--primary); color: var(--primary-fg); padding: 8px 12px; border-radius: 12px 12px 2px 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .ask-a { max-width: 95%; padding: 10px 12px; border: 1px solid var(--s-line); border-radius: 12px 12px 12px 2px; background: var(--s-bg); white-space: pre-wrap; overflow-wrap: anywhere; }
 .ask-a.refused { border-color: var(--s-amber); background: var(--s-amber-bg); color: var(--s-amber); }
 .ask-a.err { border-color: var(--s-red); background: var(--s-red-bg); color: var(--s-red); }
@@ -109,8 +99,8 @@
 .rt-result { display: grid; gap: 8px; }
 .rt-result.inj { border-color: var(--s-red); }
 .rt-bar { height: 8px; border-radius: 4px; background: var(--s-line); overflow: hidden; }
-.rt-bar > i { display: block; height: 100%; background: var(--s-blue); }
-.chip.flag-inj { color: #fff; background: var(--s-red); border-color: var(--s-red); font-weight: 700; }
+.rt-bar > i { display: block; height: 100%; background: var(--primary); }
+.chip.flag-inj { color: var(--bad-bg); background: var(--s-red); border-color: var(--s-red); font-weight: 700; }
 
 @media (prefers-reduced-motion: reduce) {
   .ask-dots::after { animation: none; content: '...'; }

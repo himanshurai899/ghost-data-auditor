@@ -1,10 +1,10 @@
 import { getCase, useAsync } from './client.ts'
 import type { Step } from './client.ts'
+import { StatusBadge } from '../ui'
 import Timeline, { DemoBadge, Gate } from './Timeline.tsx'
 import './screens.css'
 
 const PHASES: Step['phase'][] = ['FINDING', 'REMEDIATION', 'VERIFICATION']
-const statusCls = (s: string) => (s === 'COMPLETE' ? 'green' : s === 'INCOMPLETE' ? 'red' : 'plain')
 
 export default function CaseDetail({ runId, caseId }: { runId: string; caseId: string }) {
   const a = useAsync(() => getCase(runId, caseId), [runId, caseId])
@@ -20,8 +20,8 @@ export default function CaseDetail({ runId, caseId }: { runId: string; caseId: s
                 <h2>{c.case_id}</h2>
                 <span className="chip plain">reported: {c.reported}</span>
                 <span aria-hidden="true">→</span>
-                <span className={`chip ${statusCls(c.status)}`}>audited: {c.status}</span>
-                {ghost && <span className="chip ghost">👻 ghost: reported COMPLETE, still INCOMPLETE</span>}
+                <span>audited: <StatusBadge status={c.status} /></span>
+                {ghost && <span className="chip ghost">Ghost: reported COMPLETE, still INCOMPLETE</span>}
                 <DemoBadge />
                 <div className="s-muted" style={{ flexBasis: '100%' }}>
                   intent <b>{c.intent.label}</b> via {c.intent.source}
