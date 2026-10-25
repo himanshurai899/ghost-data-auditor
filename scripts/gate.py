@@ -155,7 +155,8 @@ def last_eval_baseline(log: Path) -> dict | None:
 def regressions(prev: dict | None, cur: dict) -> list[str]:
     if not prev:
         return []
-    return [f"{k} {prev[k]:.3f} -> {cur[k]:.3f}" for k in prev if k in cur and cur[k] < prev[k] - 1e-9]
+    # the log stores 3 decimals, so compare at that precision (0.96875 must not 'regress' from a logged 0.969)
+    return [f"{k} {prev[k]:.3f} -> {cur[k]:.3f}" for k in prev if k in cur and round(cur[k], 3) < round(prev[k], 3)]
 
 
 # ------------------------------------------------------------------ gates

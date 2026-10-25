@@ -552,3 +552,248 @@ branch=feature/orphan-linking
 repo_root=C:/Himanshu/Projects/hackerrank-orchestrate-october26
 worktree=C:/Himanshu/Projects/hackerrank-orchestrate-october26/.claude/worktrees/agent-a6c63b571a998a3d1
 parent_agent=coordinator
+## [2026-10-25T11:43:58Z] Phase 1 complete: merge #73/#74, full suite and gates, v1 run, evaluation report
+
+User Prompt (verbatim, secrets redacted):
+[agent reports handled: category fix PR #73, orphan linking PR #74]
+
+Agent Response Summary:
+Merged the category-treatment fix (#73) and orphan linking (#74, rebased onto develop first); the combined branch scored better than either alone. With phase-1 code complete I ran the full suite as the user requested for phase ends: four stale tests failed (activity claims now in ingest output, PNG/PDF parsers registered, planner no longer a stub) and were corrected; 209 passed, 3 skipped, and all four gates passed. Produced the v1 full run (518 rows, 0 G6 failures, 151/357/10) and wrote evaluation_report.md v1; re-measured the strict-temporal row on current develop so the report is accurate; closed #23. Phase 1 exit targets (status >= 0.80, sequence >= 0.50) are met: 0.969 and 0.531. The release/p1 merge into main is waiting for the user's OK.
+
+Actions:
+* PR #73, #74 merged; worktrees cleaned
+* pytest code/tests (209 passed, 3 skipped) after fixing 4 stale tests; gate.py all PASS
+* python code/main.py (518 cases), scorer on samples (default and --strict-temporal)
+* PR #75 and #76 merged; issue #23 closed
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5-5
+branch=develop
+repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
+worktree=main
+parent_agent=none
+
+## [2026-10-25T14:09:55Z] Release p1-mvp to main; start phase 2 with five agents
+
+User Prompt (verbatim, secrets redacted):
+Continue and we want to compelete all phases
+
+Agent Response Summary:
+Treated the request (plus the user's earlier Gitflow instruction to merge to main) as approval to release phase 1: opened release PR #77 into main, merged it, and tagged p1-mvp (main d986fb9); a local branch-switch hiccup caused by my uncommitted log.txt did not affect the remote, and I verified main, the tag and develop. Started phase 2 with five agents on disjoint files: #32 failure analysis on sample diffs, #24+#26 chat completions and LLM intent fallback (plus the OSError transport fix), #28+#31 six custom evaluation cases and a determinism gate, #29 security test pack with code review, #30 generated usage report. Tests stay deferred per D-020 except where tests are the deliverable; the full suite runs at the end of phase 2.
+
+Actions:
+* PR #77 release/p1 -> main merged; tag p1-mvp pushed; develop contains main
+* Agent dispatch x5; gh issue edit (status:in-progress) on #24 #26 #28 #29 #30 #31 #32
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5-5
+branch=develop
+repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
+worktree=main
+parent_agent=none
+
+
+## [2026-10-25T14:15:00Z] P2-07 usage report generator (sub-agent)
+
+User Prompt (verbatim, secrets redacted):
+Implementer task TS-20261025-18 (P2-07 #30): make code/evaluation/usage_report.md a generated file (usage.py), persist the LLM meter per run, log page-cache build usage. No tests, no gate runs.
+
+Agent Response Summary:
+Added usage.jsonl persistence and llm_calls/llm_tokens manifest fields in pipeline.run, a usage ledger in ev_page --refresh, code/data/usage_cache_build.jsonl (11 Parse calls, tokens null: raw responses not retained), and code/evaluation/usage.py. Regenerated usage_report.md from a fresh full run (0 runtime calls). Opened PR #78 against develop.
+
+Actions:
+* edited code/ghost/pipeline.py, code/ghost/ev_page.py; added code/evaluation/usage.py, code/data/usage_cache_build.jsonl; regenerated usage_report.md
+* ran python code/main.py (full, scratch output) and usage.py; committed, pushed, gh pr create
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5-5
+branch=feature/30-usage-report
+repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
+worktree=C:\Himanshu\Projects\hackerrank-orchestrate-october26\.claude\worktrees\agent-aafffa4c718d01531
+parent_agent=coordinator
+
+## [2026-10-25T14:15:00Z] P2-01/P2-03 chat client + LLM intent fallback
+
+User Prompt (verbatim, secrets redacted):
+Implementer task TS-20261025-15 (P2-01 #24 + P2-03 #26) delegated by coordinator: finish NVIDIA chat client, LLM intent fallback, wire --online, live smoke, PR.
+
+Agent Response Summary:
+Added Client.complete (reasoning off via chat_template_kwargs, schema check, repair retry), LLM_MAX_CALLS budget, usage_summary, OSError retry; intent.classify LLM fallback with embedding neighbours; minimal client plumbing in main/pipeline. Offline output sha unchanged. PR opened against develop.
+
+Actions:
+* edited code/ghost/llm.py, intent.py, pipeline.py, main.py
+* live smoke on NVIDIA lightning-30b; git push; gh pr create
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5-5
+branch=feature/24-26-llm-chat-intent
+repo_root=C:/Himanshu/Projects/hackerrank-orchestrate-october26
+worktree=C:/Himanshu/Projects/hackerrank-orchestrate-october26/.claude/worktrees/agent-a071c74df7451d8f9
+parent_agent=coordinator
+
+## [2026-10-25T00:00:00Z] P2-05/P2-08 custom cases + determinism gate
+
+User Prompt (verbatim, secrets redacted):
+[task_spec TS-20261025-16 from coordinator: build 6 synthetic custom evaluation cases, fill evaluation_report section 5, add gate_determinism; open PR to develop]
+
+Agent Response Summary:
+Added code/evaluation/custom_cases.py (6 synthetic cases through the real audit_case, all PASS), tests, README, report section 5, and gate_determinism (PASS, byte-identical sample runs). No pipeline bugs found. PR #80 opened against develop, not merged.
+
+Actions:
+* created custom_cases.py, custom_cases/README.md, test_custom_cases.py; edited scripts/gate.py, test_gates.py, evaluation_report.md
+* pytest on new tests (16 passed); gate.py determinism; git push; gh pr create
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5-5
+branch=feature/28-31-custom-cases-determinism
+repo_root=C:/Himanshu/Projects/hackerrank-orchestrate-october26
+worktree=C:/Himanshu/Projects/hackerrank-orchestrate-october26/.claude/worktrees/agent-af344eb7a0bed5fe3
+parent_agent=coordinator
+
+## [2026-10-25T14:30:00Z] P2-09 (#32) failure analysis fixes
+
+User Prompt (verbatim, secrets redacted):
+Implementer task TS-20261025-14 (P2-09 #32): raise sample sequence accuracy and step recall by closing generalizable diffs; branch feature/32-failure-analysis; open PR, do not merge.
+
+Agent Response Summary:
+Classified sample diffs; fixed late-only linked retained records (stub facts in reasoning.link, planner skips uncitable COMPLETE steps), sequence 0.531 to 0.656, recall 0.896 to 0.922, precision unchanged. Tried analytics rank matching, reverted for precision loss. Updated evaluation report and opened a PR.
+
+Actions:
+* edited code/ghost/reasoning.py, code/ghost/planner.py, code/evaluation/evaluation_report.md
+* ran sample and full pipeline plus scorer; git commit, push, gh pr create
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5-5
+branch=feature/32-failure-analysis
+repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
+worktree=C:\Himanshu\Projects\hackerrank-orchestrate-october26\.claude\worktrees\agent-aac3af12689ffce06
+parent_agent=coordinator
+## [2026-10-25T14:20:35Z] Merge phase-2 PRs (#79 #80 #81); start phase 3 console with four agents
+
+User Prompt (verbatim, secrets redacted):
+[agent reports handled: #24/#26 chat+intent PR #79, #28/#31 custom cases + determinism PR #80, #32 failure analysis PR #81]
+
+Agent Response Summary:
+Merged the LLM client and intent fallback (#79, after a small join of the usage log to the run's client; a first merge attempt failed on a base-branch race, so I retried and added a guard so closing and cleanup only happen after the PR state is MERGED), custom evaluation cases and determinism gate (#80, 6 of 6 pass, no pipeline bugs), and failure analysis (#81: stub facts for late-only resources; sample sequence accuracy 0.531 to 0.656, F1 0.957). Wrote and merged the console API contract (docs/console_api.md, PR #82), then started phase 3 with four agents: the FastAPI core, the grounded ask-the-auditor backend, the React shell with gate board, claim-vs-truth and cost badge, and the showpiece screens (timeline, case detail, identity graph, ask chat, red-team). The security-pack agent (#29) is still running, so five agents are active. Phase-2 end tests and release wait for #29.
+
+Actions:
+* PR #79, #80, #81 merged; issues #24 #26 #28 #31 #32 closed
+* PR #82 console API contract merged
+* Agent dispatch x4 (#33 API, #38 ask backend, shell UI, showpiece UI); status:in-progress on #33-#40
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5-5
+branch=develop
+repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
+worktree=main
+parent_agent=none
+
+
+## [2026-10-25T00:00:00+00:00] P3-06 ask backend
+
+User Prompt (verbatim, secrets redacted):
+TS-20261025-20 implement ghost/ask.py (see coordinator task spec)
+
+Agent Response Summary:
+Added code/ghost/ask.py with retrieval, rerank, guard and grounded answer; smoke run live; PR opened against develop.
+
+Actions:
+* created code/ghost/ask.py
+* live smoke calls
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5-5
+branch=feature/38-ask-backend
+repo_root=C:/Himanshu/Projects/hackerrank-orchestrate-october26
+worktree=C:/Himanshu/Projects/hackerrank-orchestrate-october26/.claude/worktrees/agent-a099d479794c8ad67
+parent_agent=coordinator
+
+## [2026-10-25T00:00:00Z] P3-04..07 console showpiece screens
+
+User Prompt (verbatim, secrets redacted):
+Implementer task TS-20261025-22: build Timeline, CaseDetail, IdentityGraph, Ask, RedTeam screens under web/src/screens/ per docs/console_api.md (full spec delegated by coordinator).
+
+Agent Response Summary:
+Built the five screens plus a typed client, mock data and CSS under web/src/screens/. npm run build passes. Opened a PR to develop on branch feature/36-39-console-screens.
+
+Actions:
+* created web/src/screens/{client,mock}.ts, {Timeline,CaseDetail,IdentityGraph,Ask,RedTeam}.tsx, screens.css
+* npm install, npm run build; git commit/push; gh pr create
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5-5
+branch=feature/36-39-console-screens
+repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
+worktree=C:\Himanshu\Projects\hackerrank-orchestrate-october26\.claude\worktrees\agent-a7f36d92626215a91
+parent_agent=coordinator
+
+## [2026-10-25T00:00:00Z] Console shell and core screens (P3-02/03/08)
+
+User Prompt (verbatim, secrets redacted):
+Implementer task TS-20261025-21: build the React operator-console shell, live gate board, claim-vs-truth and cost badge per docs/console_api.md.
+
+Agent Response Summary:
+Built web/ shell, typed API client with offline mock, screen registry, gate board, claim vs truth and usage badge. npm run build passes. Pushed feature/34-35-40-console-shell and opened a PR to develop.
+
+Actions:
+* web/src/** written; npm install; npm run build
+* git commit, push, gh pr create
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5-5
+branch=feature/34-35-40-console-shell
+repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
+worktree=C:\Himanshu\Projects\hackerrank-orchestrate-october26\.claude\worktrees\agent-a0f5c06c492aae8af
+parent_agent=coordinator
+
+## [2026-10-25T14:30:00Z] P3-01 console API implemented (sub-agent)
+
+User Prompt (verbatim, secrets redacted):
+Implementer task TS-20261025-19 from coordinator: implement the operator-console backend in code/ghost/api.py per docs/console_api.md (all endpoints except POST /api/ask, T13-T17 controls, run launch via background thread, SSE), minimal pipeline.py edits, smoke test, PR to develop. No tests, no gate runs.
+
+Agent Response Summary:
+Implemented FastAPI app with Host/Origin allow-lists, token-protected POSTs, body cap, regex ids, single-run lock, CSP headers, masked output, SSE tail with lifetime cap, and per-case recompute for timeline and identity using the real stages. Added optional run_id and an output copy to pipeline.run; the 518-case offline output hash is unchanged. Smoke-tested all endpoints and rejections; opened PR #86.
+
+Actions:
+* edited code/ghost/api.py, code/ghost/pipeline.py, code/README.md
+* ran uvicorn smoke tests, full offline run hash comparison, git push, gh pr create
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5-5
+branch=feature/33-console-api
+repo_root=C:\Himanshu\Projects\hackerrank-orchestrate-october26
+worktree=C:\Himanshu\Projects\hackerrank-orchestrate-october26\.claude\worktrees\agent-ac61955ed5833e256
+parent_agent=coordinator
+
+## [2026-10-25T00:00:00Z] P2-06 (#29) security test pack and fixes
+
+User Prompt (verbatim, secrets redacted):
+Sub-agent task TS-20261025-17 from coordinator: build code/tests/test_security.py covering threats T1-T9, T12, T18 with real code paths, review code for gaps, fix minimally, open a PR to develop (not merged).
+
+Agent Response Summary:
+Wrote 72 security tests and fixed 9 findings (quadratic email regexes, JSON-escaped secret pattern, unmetered SQL connection, obfuscated injection markers, key echo in LLM errors, hostile manifest path crash, file_id cache path, PDF page cap, table-name interpolation). Security gate PASS. PR 88 opened against develop.
+
+Actions:
+* created code/tests/test_security.py
+* edited code/ghost/safety.py, ev_sql.py, ev_page.py, intent.py, llm.py and scripts/gate.py
+* ran pytest on new and affected test files, python scripts/gate.py security
+* pushed feature/29-security-pack, opened PR 88
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5-5
+branch=feature/29-security-pack
+repo_root=C:/Himanshu/Projects/hackerrank-orchestrate-october26
+worktree=C:/Himanshu/Projects/hackerrank-orchestrate-october26/.claude/worktrees/agent-a99e2e2790fe63ff1
+parent_agent=coordinator

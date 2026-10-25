@@ -25,7 +25,9 @@ PRs into `develop` don't auto-close issues (GitHub only auto-closes on the defau
 | P1-10/11 State + policy | #19 #20 | PR #70 |
 | P1-12 Planner | #21 | PR #71 |
 
-## Open, P1 MVP (next up, in order)
+**RELEASED: p1-mvp (PR #77, main d986fb9).** Phase 2 in progress (5 agents): #32 failure analysis, #24+#26 chat client + intent fallback, #28+#31 custom cases + determinism gate, #29 security pack, #30 usage report. Remaining after: #27 adjudicator (optional), then P3 (#33-#40), P4 (#41-#46), P5 notes (#47-#51).
+
+## Open, P1 MVP (historical list)
 
 | Id | # | Status | Owner | Note |
 |---|---|---|---|---|
@@ -47,3 +49,4 @@ Later phases: P2 #24–#32 · P3 #33–#40 · P4 #41–#46 · P5 #47–#51.
 | 2026-10-25 | feature/52 | 76 pass + 3 live | 0.000 | 0.000 | 0.000 | NVIDIA client; no pipeline logic yet |
 | 2026-10-25 | 82a4922 | 147 pass + 3 live | 0.000 | 0.000 | 0.000 | identity + intent merged; planner still a stub |
 | 2026-10-25 | P1 end | 209 pass + 3 live | 0.969 | 0.943 | 0.531 | P1 phase gate: suite + gates PASS; full run 518 rows, 151/357/10 |
+| 2026-10-25 | P2/P3 end | 287 pass + 4 skip | 0.969 | 0.957 | 0.656 | phase 2+3 boundary: suite + 5 gates PASS; console API + screens merged; ask-the-auditor live-verified |
