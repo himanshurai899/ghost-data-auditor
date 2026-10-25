@@ -3,4 +3,5 @@
 pypdf==6.20.0       # PDF text layer (P2-02)
 fastapi==0.143.0    # console API (P3-01)
 uvicorn==0.54.0     # console API server (P3-01)
+# optional, not pinned: cryptography (Fernet key vault on non-Windows; Windows uses DPAPI via ctypes; else use .env)
 pydantic==2.14.0    # API request validation (P3-01)
