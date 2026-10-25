@@ -93,7 +93,7 @@ def run(requests_path: Path, out_path: Path, runs_dir: Path = REPO / "runs", cas
     g7 = validate_output(out_path, requests_path, None if not cases else set(cases))
     if g6_failures:
         g7.append(f"{g6_failures} cases failed G6")
-    usage = list(getattr(ev_page._client, "usage", []))  # the Client configured for the run, if any
+    usage = list(getattr(client, "usage", [])) + list(getattr(ev_page._client, "usage", []))  # --online client + page client, if any
     _write_usage(trail.dir, usage)
     manifest |= {"llm_calls": len(usage), "llm_tokens": sum(u.get("total_tokens", 0) for u in usage)}
     manifest |= {"cases": len(rows), "g6_failures": g6_failures, "output": out_path.name,
