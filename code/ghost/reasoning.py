@@ -97,7 +97,10 @@ def evaluate(facts, rules, audit_at: str, coverage=()) -> list[ResourceVerdict]:
 
     out = []
     for (sys_id, res_id), fs in sorted(groups.items()):
-        category = next((f.category for f in fs if f.category), "")
+        # Record kind comes from the evidence file that observed the record; the id-prefix guess carried by activity
+        # claims (support_* -> SUPPORT_MESSAGE, analytics_* -> ANALYTICS_PROFILE) is only a fallback: an attachment,
+        # contact index or marketing-style row shares its system's prefix but has a different (DELETE) rule.
+        category = next((f.category for f in sorted(fs, key=lambda f: f.is_claim) if f.category), "")
         rule_id, required, kind = _policy(category, rules)
         obs = sorted((f for f in fs if not f.is_claim and f.observation in _OBS_STATE),
                      key=lambda f: (ts(f.observed_at), _RANK[_OBS_STATE[f.observation]], f.evidence_id))
