@@ -107,6 +107,19 @@ def unignored(root: Path = ROOT) -> list[str]:
             if subprocess.run(["git", "check-ignore", "-q", "--no-index", p], cwd=root).returncode != 0]
 
 
+def log_problems(log: Path) -> list[str]:
+    """AGENTS.md section 5 format: every entry has exactly one populated tool= and model= line, no glued headers."""
+    if not log.exists():
+        return ["log.txt missing"]
+    text = log.read_text(encoding="utf-8")
+    problems = [f"header glued to previous line at offset {m.start()}" for m in re.finditer(r"(?<=\S)## \[20", text)]
+    for b in (b for b in re.split(r"(?m)^(?=## \[)", text) if b.startswith("## [")):
+        tools, models = re.findall(r"(?m)^tool=(.*)$", b), re.findall(r"(?m)^model=(.*)$", b)
+        if len(tools) != 1 or len(models) != 1 or not tools[0].strip() or not models[0].strip()                 or models[0].strip().lower() in ("unknown", "ai") or "<" in tools[0] + models[0]:
+            problems.append(f"bad tool/model fields in entry: {b.splitlines()[0][:60]}")
+    return problems
+
+
 def package_members(root: Path = ROOT) -> list[str]:
     """Allowlist: everything under code/ except caches, secrets, archives (T1, P4-03)."""
     base = root / "code"
@@ -194,6 +207,7 @@ def gate_security():
                                  capture_output=True, text=True).stdout.split()
     problems += [f".env tracked: {f}" for f in tracked_env]
     problems += [f"not gitignored: {p}" for p in unignored()]
+    problems += [f"log.txt: {x}" for x in log_problems(ROOT / "log.txt")]
     if problems:
         return "FAIL", f"{len(problems)} problems; first: {problems[0]}"
     return "PASS", f"{len(files)} files clean (secrets, unsafe APIs, golden leak, PII, .env)"

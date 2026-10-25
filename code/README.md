@@ -17,6 +17,10 @@ pip install -r code/requirements.txt
 copy .env.example .env            # optional: add NVIDIA_API_KEY for --online
 ```
 
+## Layout of the submitted archive
+
+`code.zip` contains the contents of this `code/` folder (`main.py`, `ghost/`, `prompts/`, `config/`, `data/`, `evaluation/`, `tests/`, `README.md`, requirements). Unpack it as `code/` inside a checkout that also has the organizer's `dataset/` folder; paths are resolved relative to that repository root, and `output.csv` is written there.
+
 ## Run (from the repository root)
 
 ```text
