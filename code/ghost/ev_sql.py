@@ -38,7 +38,7 @@ TIME_COLUMNS = ("updated_at", "indexed_at")
 PII_KEYS = {"SUPPORT_MESSAGE": {"email", "phone", "email_hash", "name"},
             "ACCOUNT_TOMBSTONE": {"email", "phone", "email_hash", "name"},
             "ANALYTICS_PROFILE": {"email", "phone", "email_hash", "user_id"}}
-_EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+_EMAIL = re.compile(r"(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 
 
 def _ref_keys(value, is_null):
@@ -135,6 +135,8 @@ def parse(path: Path, meta: dict) -> tuple[list, list]:
     for t in tables:
         if t == "snapshot_scope":
             continue
+        if not (t in INVENTORY or t in STANDALONE or t.startswith("customer_data_")):
+            raise ValueError(f"unknown table {t!r}")  # before it is interpolated into SQL below
         rows = [dict(r) for r in conn.execute(f"select * from {t} order by resource_id")]
         data_rows += len(rows)
         if t in INVENTORY or t in STANDALONE:

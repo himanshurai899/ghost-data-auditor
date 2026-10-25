@@ -74,3 +74,10 @@ def test_unignored_flags_missing_entries(tmp_path):
     (tmp_path / ".gitignore").write_text(".env\n", encoding="utf-8")
     missing = gate.unignored(tmp_path)
     assert ".env" not in missing and ".claude/worktrees/" in missing and "runs/" in missing
+
+
+def test_identical_bytes_helper(tmp_path):
+    a, b, c = (write(tmp_path, n, t) for n, t in (("a", "x\n"), ("b", "x\n"), ("c", "y\n")))
+    assert gate.identical_bytes(a, b)[0] is True
+    same, sha = gate.identical_bytes(a, c)
+    assert same is False and len(sha) == 12

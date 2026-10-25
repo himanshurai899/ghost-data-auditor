@@ -57,7 +57,7 @@ def test_bad_input_aborts_at_g1(tmp_path):
 
 def test_unplannable_case_degrades_safely(run, monkeypatch, tmp_path):
     from ghost import intent, planner
-    monkeypatch.setattr(intent, "classify", lambda text, offline=True: intent.Intent("DELETE", 0.9, "test"))
+    monkeypatch.setattr(intent, "classify", lambda text, offline=True, client=None: intent.Intent("DELETE", 0.9, "test"))
     monkeypatch.setattr(planner, "plan", lambda verdicts: (_ for _ in ()).throw(ValueError("no verdicts")))
     out, m = run()                                   # an unplannable case must not abort the run
     assert c.validate_output(out, SAMPLE) == [] and m["g6_failures"] == 0

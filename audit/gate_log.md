@@ -26,3 +26,4 @@ Append-only. Written by `scripts/gate.py`.
 | 2026-10-25T11:42:31Z | eval | PASS | status=0.969 step_f1=0.943 field=0.830 seq=0.531 (32 cases) | coordinator | 17f9560 |
 | 2026-10-25T11:42:32Z | security | PASS | 127 files clean (secrets, unsafe APIs, golden leak, PII, .env) | coordinator | 17f9560 |
 | 2026-10-25T11:42:32Z | package | PASS | code.zip with 61 files, secret scan clean | coordinator | 17f9560 |
+| 2026-10-25T14:31:54Z | eval | PASS | status=0.969 step_f1=0.957 field=0.877 seq=0.656 (32 cases) | coordinator | 55859d0 |

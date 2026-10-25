@@ -2,6 +2,7 @@
 
     python scripts/gate.py contract   # G7 on ./output.csv
     python scripts/gate.py eval       # sample run + scorer + no-regression vs last PASS
+    python scripts/gate.py determinism # two offline sample runs must be byte-identical
     python scripts/gate.py security   # secrets, unsafe APIs, golden leak, PII, .env tracking (DG5)
     python scripts/gate.py package    # build code.zip from an allowlist and scan it
     python scripts/gate.py all
@@ -10,8 +11,10 @@ Set AGENT_NAME to record who ran the gate. Exit code 1 if any gate FAILs.
 import csv
 import os
 import re
+import hashlib
 import subprocess
 import sys
+import tempfile
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,7 +30,8 @@ SECRET_PATTERNS = [re.compile(p) for p in (
     r"github_pat_[A-Za-z0-9_]{30,}",
     r"\bAKIA[0-9A-Z]{16}\b",
     r"-----BEGIN [A-Z ]*PRIVATE KEY-----",
-    r"(?i)(api[_-]?key|secret|token|password)\s*[:=]\s*['\"][^'\"\s]{16,}['\"]",
+    # also matches the JSON-escaped form found in session transcripts: \"api_key\": \"value\" (T18)
+    r"(?i)(api[_-]?key|secret|token|password)\\?['\"]?\s*[:=]\s*\\?['\"][^'\"\s\\]{16,}",
 )]
 UNSAFE_PATTERNS = [re.compile(p) for p in (
     r"\beval\(", r"\bexec\(", r"\bpickle\.loads?\(", r"shell\s*=\s*True", r"\bos\.system\(",
@@ -151,7 +155,8 @@ def last_eval_baseline(log: Path) -> dict | None:
 def regressions(prev: dict | None, cur: dict) -> list[str]:
     if not prev:
         return []
-    return [f"{k} {prev[k]:.3f} -> {cur[k]:.3f}" for k in prev if k in cur and cur[k] < prev[k] - 1e-9]
+    # the log stores 3 decimals, so compare at that precision (0.96875 must not 'regress' from a logged 0.969)
+    return [f"{k} {prev[k]:.3f} -> {cur[k]:.3f}" for k in prev if k in cur and round(cur[k], 3) < round(prev[k], 3)]
 
 
 # ------------------------------------------------------------------ gates
@@ -208,7 +213,25 @@ def gate_package():
     return "PASS", f"code.zip with {len(members)} files, secret scan clean"
 
 
-GATES = {"contract": gate_contract, "eval": gate_eval, "security": gate_security, "package": gate_package}
+def identical_bytes(a: Path, b: Path) -> tuple[bool, str]:
+    """(same bytes?, sha256 prefix of the first file)."""
+    da, db = Path(a).read_bytes(), Path(b).read_bytes()
+    return da == db, hashlib.sha256(da).hexdigest()[:12]
+
+
+def gate_determinism():
+    from ghost.contract import DATASET
+    from ghost.pipeline import run
+    with tempfile.TemporaryDirectory() as d:
+        d = Path(d)
+        for n in ("a", "b"):
+            run(DATASET / "sample_deletion_requests.csv", d / f"{n}.csv", runs_dir=d / "runs", offline=True)
+        same, sha = identical_bytes(d / "a.csv", d / "b.csv")
+    return ("PASS", f"2 offline sample runs byte-identical sha256={sha}") if same else ("FAIL", f"outputs differ (first run sha256={sha})")
+
+
+GATES = {"contract": gate_contract, "eval": gate_eval, "determinism": gate_determinism, "security": gate_security,
+         "package": gate_package}
 
 
 def main(argv) -> int:

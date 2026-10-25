@@ -83,6 +83,9 @@ def api_key(role: str) -> str:
 
 
 def _redact(text: str) -> str:
+    """Strip nvapi- keys and the exact key values in the environment (a server may echo a key of any shape)."""
+    for k in {v for n, v in os.environ.items() if n.startswith("NVIDIA_API_KEY") and len(v) >= 8}:
+        text = text.replace(k, "[REDACTED]")
     return _KEY_PATTERN.sub("nvapi-[REDACTED]", text)
 
 
@@ -95,6 +98,21 @@ def urllib_transport(url: str, headers: dict, body: bytes, timeout: float) -> tu
         return e.code, e.read()
     except urllib.error.URLError as e:
         raise TimeoutError(str(e.reason)) from None
+    except OSError as e:  # raw ConnectionResetError / socket timeouts surface outside URLError: retry them too
+        raise TimeoutError(str(e)) from None
+
+
+def _check_schema(obj, schema) -> str:
+    """'' if obj fits the minimal schema, else the reason."""
+    if not isinstance(obj, dict):
+        return "top level must be a JSON object"
+    for k in (schema or {}).get("required", ()):
+        if k not in obj:
+            return f"missing key {k!r}"
+    for k, allowed in (schema or {}).get("enums", {}).items():
+        if k in obj and obj[k] not in allowed:
+            return f"{k!r} must be one of {list(allowed)}"
+    return ""
 
 
 def _image_mime(data: bytes) -> str:
@@ -113,6 +131,8 @@ class Client:
         self.min_interval = 60.0 / rpm if rpm else 0.0
         self.sleep, self.clock, self._last = sleep, clock, None
         self.usage: list[dict] = []
+        self.max_calls = int(os.environ.get("LLM_MAX_CALLS", 400))
+        self.live_calls = 0  # network calls only; cache hits are free
 
     # ---------------------------------------------------------------- public endpoints
 
@@ -146,8 +166,37 @@ class Client:
         out = self._call("parse", f"{retrieval_url()}/{name}/parse", body, f"multipart/form-data; boundary={boundary}", case_id)
         return out["content"]
 
-    def complete(self, role: str, messages: list[dict], **kw) -> dict:
-        raise NotImplementedError("P2-01: chat completions (disable reasoning via chat_template_kwargs)")
+    def complete(self, role: str, messages: list[dict], *, schema: dict | None = None, max_tokens: int = 600,
+                 case_id: str | None = None) -> dict:
+        """Chat completion -> parsed JSON object. Temperature 0, reasoning off, one repair retry.
+
+        `schema` is minimal: {"required": [keys], "enums": {key: [allowed values]}}.
+        Reasoning off: live-verified on nemotron-3.5-lightning-30b-a3b that chat_template_kwargs
+        {"enable_thinking": false} gives non-null `content` at small max_tokens (see _chat).
+        """
+        msgs = list(messages)
+        last = ""
+        for attempt in range(2):
+            text = self._chat(role, msgs, max_tokens, case_id)
+            try:
+                obj = json.loads(text[text.index("{"):text.rindex("}") + 1])
+                last = _check_schema(obj, schema)
+            except ValueError as e:  # json errors and index errors are ValueErrors
+                obj, last = None, f"not valid JSON ({e})"
+            if not last:
+                return obj
+            msgs = msgs + [{"role": "assistant", "content": text[:500]},
+                           {"role": "user", "content": f"Invalid: {last}. Reply again with only the corrected JSON object."}]
+        raise LLMError(f"{role} {model(role)}: no valid JSON after repair retry: {last}")
+
+    def _chat(self, role: str, messages: list[dict], max_tokens: int, case_id) -> str:
+        body = {"model": model(role), "messages": messages, "temperature": 0, "max_tokens": max_tokens,
+                "chat_template_kwargs": {"enable_thinking": False}}
+        out = self._call(role, f"{base_url()}/chat/completions", json.dumps(body).encode(), "application/json", case_id)
+        text = (out.get("choices") or [{}])[0].get("message", {}).get("content")
+        if not text:  # content null = reasoning ate the budget; never parse reasoning_content
+            raise LLMError(f"{role} {model(role)}: empty content (reasoning not disabled or max_tokens too small)")
+        return text
 
     # ---------------------------------------------------------------- plumbing
 
@@ -161,6 +210,9 @@ class Client:
         if self.offline:
             raise OfflineCacheMiss(f"{role}: no cached response for {digest[:12]} (run with --online)")
 
+        if self.live_calls >= self.max_calls:
+            raise LLMError(f"LLM_MAX_CALLS={self.max_calls} exceeded")
+        self.live_calls += 1
         self._throttle()
         headers = {"Authorization": f"Bearer {api_key(role)}", "Content-Type": content_type, "Accept": "application/json"}
         last = ""
@@ -170,7 +222,7 @@ class Client:
             try:
                 status, raw = self.transport(url, headers, body, TIMEOUT_S)
             except TimeoutError as e:
-                last = f"timeout: {e}"
+                last = f"timeout: {_redact(str(e))}"
                 continue
             if status == 200:
                 out = json.loads(raw)
@@ -190,9 +242,22 @@ class Client:
                 self.sleep(wait)
         self._last = self.clock()
 
+    def usage_summary(self) -> dict:
+        """Per-model totals plus an overall row: {model: {calls, cached_calls, prompt_tokens, output_tokens, total_tokens}}."""
+        tot: dict = {}
+        for u in self.usage:
+            for key in (u["model"], "TOTAL"):
+                t = tot.setdefault(key, dict.fromkeys(("calls", "cached_calls", "prompt_tokens", "output_tokens", "total_tokens"), 0))
+                t["calls"] += 1
+                t["cached_calls"] += u["cached"]
+                for k in ("prompt_tokens", "output_tokens", "total_tokens"):
+                    t[k] += u[k]
+        return tot
+
     def _meter(self, role: str, out: dict, cached: bool, case_id) -> None:
         u = out.get("usage", {})
+        out_tok = u.get("output_tokens", u.get("completion_tokens", 0))  # chat reports completion_tokens
         self.usage.append({"provider": "nvidia", "role": role, "model": model(role), "cached": cached,
-                           "prompt_tokens": u.get("prompt_tokens", 0), "output_tokens": u.get("output_tokens", 0),
-                           "total_tokens": u.get("total_tokens", u.get("prompt_tokens", 0) + u.get("output_tokens", 0)),
+                           "prompt_tokens": u.get("prompt_tokens", 0), "output_tokens": out_tok,
+                           "total_tokens": u.get("total_tokens", u.get("prompt_tokens", 0) + out_tok),
                            "case_id": case_id})

@@ -15,10 +15,12 @@ from dataclasses import asdict
 from pathlib import Path
 
 CACHE = Path(__file__).resolve().parents[1] / "data" / "pages"
+MAX_PDF_PAGES = 50  # T6: evidence PDFs are 1-2 pages
+_FILE_ID = re.compile(r"[A-Za-z0-9_-]+")
 _client = None  # set via configure(); None means offline, so a cache miss raises
 
 RES = re.compile(r"\b(?:account|search|support|analytics|export|marketing|backup|data_flow|audit_record|tombstone|legal_hold|object)_\d+\b")
-EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+EMAIL = re.compile(r"(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 USER = re.compile(r"\buser_\d+\b")
 PHONE = re.compile(r"\+\d[\d ()-]{7,}\d")
 HASH = re.compile(r"\b[0-9a-fA-F]{64}\b")
@@ -113,7 +115,8 @@ def extract(md: str, meta: dict, aliases: dict, pdf: bool) -> list:
 
 def _pdf_text(path: Path) -> str:
     from pypdf import PdfReader  # lazy: only PDF cache misses and --refresh need it
-    return "\n".join((p.extract_text() or "") for p in PdfReader(str(path)).pages).strip()
+    pages = PdfReader(str(path)).pages
+    return "\n".join((p.extract_text() or "") for p in pages[:MAX_PDF_PAGES]).strip()
 
 
 def _dump(facts) -> str:
@@ -147,6 +150,8 @@ def _extract_file(path: Path, meta: dict) -> list:
 
 
 def parse(path, meta: dict) -> tuple[list, list]:
+    if not _FILE_ID.fullmatch(meta["file_id"]):  # file_id names a cache file: no separators, no ".."
+        raise ValueError(f"unsafe file_id {meta['file_id'][:40]!r}")
     cached = CACHE / f"{meta['file_id']}.json"
     if cached.is_file():
         return _load(cached), []
@@ -159,12 +164,15 @@ def refresh() -> None:
     from ghost import ev_page, llm
     from ghost.contract import DATASET, read_csv
     llm.load_env(Path(sys.argv[sys.argv.index("--env") + 1])) if "--env" in sys.argv else llm.load_env()
-    ev_page.configure(llm.Client())
+    client = llm.Client()
+    ev_page.configure(client)
+    ledger = Path(__file__).resolve().parents[1] / "data" / "usage_cache_build.jsonl"  # tokens only, no PII
     CACHE.mkdir(parents=True, exist_ok=True)
     for meta in read_csv(DATASET / "evidence_files.csv"):
         path = DATASET / meta["file_path"]
         if path.suffix.lower() not in (".png", ".pdf"):
             continue
+        mark = len(client.usage)
         for attempt in range(4):
             try:
                 facts = ev_page._extract_file(path, meta)
@@ -174,6 +182,11 @@ def refresh() -> None:
                 time.sleep(5)
         else:
             raise RuntimeError(f"{meta['file_id']}: page extraction kept failing")
+        with open(ledger, "a", encoding="utf-8", newline="\n") as f:
+            for u in client.usage[mark:]:
+                f.write(json.dumps({"file_id": meta["file_id"], "provider": u["provider"], "model": u["model"], "role": u["role"],
+                                    "prompt_tokens": u["prompt_tokens"] or None, "output_tokens": u["output_tokens"] or None},
+                                   sort_keys=True) + "\n")
         (CACHE / f"{meta['file_id']}.json").write_text(_dump(facts), encoding="utf-8", newline="\n")
         print(meta["file_id"], len(facts))
 

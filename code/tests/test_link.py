@@ -43,7 +43,7 @@ def test_unlinked_fact_of_discovered_resource_is_cited_if_citable():
 def test_late_only_discovery_default_vs_strict_and_state_ignores_late():
     late = fact("r1", {"user_id": "user_9"}, cap=LATE, obs=LATE)  # case_09-type: resource known only from a late file
     d = link(SUBJ, [late], REQ, AUD)
-    assert d.resources == {("account_service", "r1")} and d.late_only == d.resources and d.facts == ()
+    assert d.resources == {("account_service", "r1")} and d.late_only == d.resources and all(f.observation == "UNKNOWN" and f.evidence_id == "" for f in d.facts)  # stateless stub, no late id (D-017/#81)
     s = link(SUBJ, [late], REQ, AUD, strict_temporal=True)
     assert s == Linked(frozenset(), (), frozenset())
 
