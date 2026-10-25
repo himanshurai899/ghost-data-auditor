@@ -81,3 +81,16 @@ def test_identical_bytes_helper(tmp_path):
     assert gate.identical_bytes(a, b)[0] is True
     same, sha = gate.identical_bytes(a, c)
     assert same is False and len(sha) == 12
+
+
+
+def test_log_problems_flags_glued_and_duplicate_fields(tmp_path):
+    good = "## [2026-01-01T00:00:00Z] a\n\nContext:\ntool=Claude Code\nmodel=claude-sonnet-5-5\n\n"
+    log = tmp_path / "log.txt"
+    log.write_text(good, encoding="utf-8")
+    assert gate.log_problems(log) == []
+    log.write_text(good.rstrip("\n") + "## [2026-01-01T00:00:01Z] b\ntool=X\nmodel=Y\n", encoding="utf-8")
+    assert any("glued" in p for p in gate.log_problems(log))
+    log.write_text(good + "## [2026-01-01T00:00:02Z] c\ntool=X\ntool=X\nmodel=unknown\n", encoding="utf-8")
+    assert any("bad tool/model" in p for p in gate.log_problems(log))
+    assert gate.log_problems(ROOT / "log.txt") == []   # the real transcript

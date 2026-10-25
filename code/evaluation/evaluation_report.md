@@ -1,6 +1,6 @@
 # Evaluation Report
 
-> Status: **P1 (MVP) baseline, deterministic pipeline, offline, no LLM calls at run time.** Numbers come from `python code/evaluation/main.py` on the 32 public samples (`dataset/sample_output.csv`). Run id of the final full run: `20261025T114242Z-413437`. The pipeline never reads the sample answers.
+> Status: **P1 (MVP) baseline, deterministic pipeline, offline, no LLM calls at run time.** Numbers come from `python code/evaluation/main.py` on the 32 public samples (`dataset/sample_output.csv`). Run id of the final full run: `20261025T143538Z-ef69e7` (cold cache, offline, output sha256 `14d032982946…`). The pipeline never reads the sample answers.
 
 ## 1. Case-level status accuracy
 
@@ -65,3 +65,16 @@ Result of the last run: 6/6 passed. No pipeline bug was found by these cases.
 | 6 | Tried rank-matching several free analytics rows to batch subjects by block order | block order agrees with later blocks only 80-90% of the time | reverted: swapped case_27 and case_28, precision 0.994 to 0.983 with no recall gain | none kept |
 
 Remaining known ceiling: three expected resources appear in no participant file (case_04 account_004, case_18 audit_record_6645, case_20 audit_record_5569); audit records have no activity row, so none can be linked by batch structure; accounts in ties of three or more candidates are skipped on purpose. After P2-09 the 11 non-exact sample cases are all this ceiling: the three absent ids (04, 18, 20), six COMPLETE cases (03, 21, 25 to 28) whose null-identifier analytics row has an ambiguous owner among same-day batch rows, and accounts of cases 20 to 23 in batch ties (case_22 is a coin-flip two-way tie). The account-to-chain delay is random per subject (85 to 142 minutes for gap 19), so no tighter elimination exists.
+
+### Orphan-linking accuracy (measured in PR #74, `code/ghost/orphan.py`)
+
+Resources that carry no identifier tying them to the person (accounts, retained audit records, null-identifier analytics rows) are linked from the daily deletion-batch structure (rules R1 id alignment, R2 account batch, R3 analytics grid; each adds only resources no other subject owns).
+
+| Measure | Result |
+|---|---|
+| Samples: unlinked pairs recovered | 10 of 28, with 1 wrong pick (case_22, a two-way tie): precision 10/11, recall 10/28 |
+| Label-free hold-out (hide every 3rd case's text-linked resources across all 550 cases, re-discover): accounts | 44 of 98 recovered, 3 wrong |
+| Same hold-out: analytics | 17 of 18 recovered, 0 wrong |
+| Not recoverable | 3 resources in no participant file (case_04 account_004, case_18 audit_record_6645, case_20 audit_record_5569); audit records have no activity row; accounts in ties of three or more candidates are skipped on purpose |
+
+An attempt to rank-match free analytics rows to batch subjects was tried and reverted: it swapped two cases and dropped step precision from 0.994 to 0.983 with no recall gain.
