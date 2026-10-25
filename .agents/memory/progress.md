@@ -50,3 +50,4 @@ Later phases: P2 #24–#32 · P3 #33–#40 · P4 #41–#46 · P5 #47–#51.
 | 2026-10-25 | 82a4922 | 147 pass + 3 live | 0.000 | 0.000 | 0.000 | identity + intent merged; planner still a stub |
 | 2026-10-25 | P1 end | 209 pass + 3 live | 0.969 | 0.943 | 0.531 | P1 phase gate: suite + gates PASS; full run 518 rows, 151/357/10 |
 | 2026-10-25 | P2/P3 end | 287 pass + 4 skip | 0.969 | 0.957 | 0.656 | phase 2+3 boundary: suite + 5 gates PASS; console API + screens merged; ask-the-auditor live-verified |
+| 2026-10-26 | UI redesign | 288 pass + 4 skip | 0.969 | 0.957 | 0.656 | console redesign merged to develop: landing + pipeline tooltips, dashboard, cost, settings + key vault, cases + ranked evidence chain; real-browser checks 16/16; suite + 5 gates PASS; release PR to main awaits owner review |
