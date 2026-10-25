@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import logging
 import time
 
@@ -90,17 +91,32 @@ def _cos(a, b):
     return sum(x * y for x, y in zip(a, b)) / (na * nb) if na and nb else 0.0
 
 
+# Deterministic topic check: a question must mention something about the audit (cheap, no model).
+_TOPIC = re.compile(r"(case|cases|audit|audited|incomplete|complete|completed|ghost|ghosts|claim|claims|workflow|delet\w*|remov\w*|"
+                    r"erase\w*|evidence|record|records|resource|resources|status|gate|gates|finding|findings|remediat\w*|"
+                    r"verif\w*|backup|restore|replica|sync|flow|account|accounts|analytics|support|search|export|identity|"
+                    r"email|step|steps|run|runs|why|how many|reported|pii|redact\w*|anonymi\w*|tombstone|retain\w*|"
+                    r"not[_ ]applicable|evidence_\d+|case_\d+)", re.I)
+_guard_down = False  # circuit breaker: after one hard failure of the topic-control endpoint stop calling it this process
+
+
 def check_guard(question: str, client) -> str | None:
     """Refusal reason, or None if the question may proceed."""
+    global _guard_down
     if len(question) > MAX_Q:
         return f"Question is longer than {MAX_Q} characters."
     if _INJECTION.search(normalize(question)):
         return "Instruction-override requests are not accepted."
+    if not _TOPIC.search(question):
+        return "Only questions about this audit run can be answered."
+    if _guard_down:
+        return None
     try:  # topic-control model answers in plain text, so use the raw chat path rather than complete()
         verdict = client._chat("guard", [{"role": "system", "content": GUARD_PROMPT},
                                          {"role": "user", "content": question}], 10, None)
     except llm.LLMError as e:
-        log.warning("topic-control guard errored (%s); failing open to the regex check only", str(e)[:80])
+        _guard_down = True
+        log.warning("topic-control guard errored (%s); using the regex checks only for this process", str(e)[:80])
         return None
     if "off-topic" in verdict.lower():
         return "Only questions about this audit run can be answered."
