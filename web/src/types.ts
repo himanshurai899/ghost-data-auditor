@@ -1,5 +1,6 @@
 // Response types: exactly docs/console_api.md.
 import type { ComponentType } from 'react'
+import type { IconName } from './ui'
 
 export type Status = 'COMPLETE' | 'INCOMPLETE' | 'NOT_APPLICABLE'
 export type Reported = 'COMPLETE' | 'PARTIALLY_COMPLETE' | 'NOT_STARTED'
@@ -103,24 +104,34 @@ export interface AskResult {
   reason?: string
 }
 
-// ---- screen registry contract (see screens/registry.ts) ----
+// ---- page registry contract (pages/index.ts) ----
 export interface CaseFilter {
   status?: Status
   reported?: Reported
 }
+/** Props the shell passes to EVERY page component. */
 export interface ScreenProps {
   runId: string | null
-  /** shared selected case (null = none) */
+  /** selected case: derived from the route #/cases/<id>; setCaseId navigates there (null = #/cases) */
   caseId: string | null
   setCaseId: (id: string | null) => void
-  /** shared Cases-tab filter, set by Claim vs truth cells */
+  /** shared Cases filter, set by Claim vs truth cells */
   filter: CaseFilter
   setFilter: (f: CaseFilter) => void
-  /** switch tab by registry id */
-  go: (screenId: string) => void
+  /** navigate by page path ('cases', 'dashboard', 'live', ...; '' = landing) */
+  go: (path: string) => void
+  /** all runs (newest first) as loaded by the shell */
+  runs: RunSummary[]
+  /** start a full audit run and navigate to #/live */
+  startAudit: () => Promise<void>
+  starting: boolean
 }
-export interface ScreenDef {
-  id: string
+export interface PageDef {
+  /** route segment without '#/': '' (landing), 'dashboard', 'cases', ... Keep stable. */
+  path: string
   title: string
+  icon: IconName
+  /** show in the left rail / bottom tab bar */
+  nav: boolean
   component: ComponentType<ScreenProps>
 }

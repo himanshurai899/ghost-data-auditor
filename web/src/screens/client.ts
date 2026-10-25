@@ -36,7 +36,11 @@ const getToken = () => (token ??= fetch('/api/token').then((r) => { if (!r.ok) t
 
 async function call<T>(path: string, init: RequestInit | undefined, fallback: () => T): Promise<T> {
   let res: Response
-  try { res = await fetch(path, init) } catch { setDemo(); return fallback() }
+  try { res = await fetch(path, init) } catch (e) {
+    // A timeout is NOT 'backend down': never swap in demo data for it (a hung question would show a made-up answer).
+    if (e instanceof DOMException && (e.name === 'TimeoutError' || e.name === 'AbortError')) throw new ApiError(504, 'The auditor took too long to answer. The first question on a large run builds a search index; try again in a moment.')
+    setDemo(); return fallback()
+  }
   if (!res.ok) {
     if (res.status >= 502) { setDemo(); return fallback() } // dev proxy with no backend
     let msg = res.statusText
@@ -46,17 +50,17 @@ async function call<T>(path: string, init: RequestInit | undefined, fallback: ()
   return res.json() as Promise<T>
 }
 
-async function post<T>(path: string, body: unknown, fallback: () => T): Promise<T> {
+async function post<T>(path: string, body: unknown, fallback: () => T, timeoutMs = 0): Promise<T> {
   let t: string
   try { t = await getToken() } catch { setDemo(); return fallback() }
-  return call<T>(path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Console-Token': t }, body: JSON.stringify(body) }, fallback)
+  return call<T>(path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Console-Token': t }, body: JSON.stringify(body), ...(timeoutMs ? { signal: AbortSignal.timeout(timeoutMs) } : {}) }, fallback)
 }
 
 const base = (runId: string, caseId: string) => `/api/runs/${encodeURIComponent(runId)}/cases/${encodeURIComponent(caseId)}`
 export const getCase = (r: string, c: string) => call<CaseDetailData>(base(r, c), undefined, () => mockCase(c))
 export const getTimeline = (r: string, c: string) => call<TimelineData>(`${base(r, c)}/timeline`, undefined, mockTimeline)
 export const getIdentity = (r: string, c: string) => call<IdentityData>(`${base(r, c)}/identity`, undefined, mockIdentity)
-export const ask = (run_id: string, question: string) => post<AskResponse>('/api/ask', { run_id, question }, () => mockAsk(question))
+export const ask = (run_id: string, question: string) => post<AskResponse>('/api/ask', { run_id, question }, () => mockAsk(question), 75_000)
 export const redteam = (text: string) => post<RedteamResponse>('/api/redteam', { text }, () => mockRedteam(text))
 
 // --- React helpers (no JSX) ---

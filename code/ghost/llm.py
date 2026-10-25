@@ -30,7 +30,13 @@ DEFAULT_MODELS = {
 
 def model(role: str) -> str:
     var, default = DEFAULT_MODELS[role]
-    return os.environ.get(var, default)
+    if var in os.environ:
+        return os.environ[var]
+    try:
+        from . import vault  # UI overrides (.ghost/settings.json) sit below environment variables
+        return vault.model_overrides().get(role) or default
+    except Exception:
+        return default
 
 
 def models() -> dict[str, str]:
@@ -78,6 +84,15 @@ def api_key(role: str) -> str:
     specific = f"NVIDIA_API_KEY_{role.upper()}"
     key = os.environ.get(specific) or os.environ.get("NVIDIA_API_KEY")
     if not key:
+        try:  # vault: active ref for the role (chat roles also honour "chat"), then "default"
+            from . import vault
+            act = vault.active()
+            ref = next((act[r] for r in (role, "chat" if role in ("fast", "reason", "vision", "guard") else None, "default")
+                        if r and r in act), None)
+            key = vault.get_secret(ref) if ref else None
+        except Exception:
+            key = None
+    if not key:
         raise LLMConfigError(f"no API key: set {specific} or NVIDIA_API_KEY in the environment or .env")
     return key
 
@@ -86,6 +101,12 @@ def _redact(text: str) -> str:
     """Strip nvapi- keys and the exact key values in the environment (a server may echo a key of any shape)."""
     for k in {v for n, v in os.environ.items() if n.startswith("NVIDIA_API_KEY") and len(v) >= 8}:
         text = text.replace(k, "[REDACTED]")
+    try:
+        from . import vault
+        for k in vault.known_secrets():
+            text = text.replace(k, "[REDACTED]")
+    except Exception:
+        pass
     return _KEY_PATTERN.sub("nvapi-[REDACTED]", text)
 
 

@@ -1,0 +1,30 @@
+/* Reset, typography, focus ring, motion, utilities. */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: var(--fs-md)/1.5 var(--font-sans); overflow-x: hidden; }
+#root { min-height: 100svh; }
+h1, h2, h3, h4 { margin: 0; line-height: 1.2; letter-spacing: -.01em; }
+h1 { font-size: var(--fs-2xl); } h2 { font-size: var(--fs-xl); } h3 { font-size: var(--fs-lg); }
+p { margin: 0; }
+a { color: var(--primary-text); }
+code, kbd, pre { font-family: var(--font-mono); font-size: .92em; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+::selection { background: var(--primary-soft); }
+table { border-collapse: collapse; width: 100%; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+th { font-size: var(--fs-sm); color: var(--text-muted); font-weight: 600; }
+
+/* utilities */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.muted { color: var(--text-muted); } .ok { color: var(--ok); } .bad { color: var(--bad); } .warn { color: var(--warn); }
+.mono { font-family: var(--font-mono); } .pad { padding: 0 16px; } .grow { flex: 1 1 200px; min-width: 0; }
+.stack { display: grid; gap: var(--space-md); } .row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm) var(--space-md); }
+.grid-auto > * { min-width: 0; } /* 1fr has an implicit min of auto: a wide table child would blow the track out at 375px */
+.grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: var(--space-md); }
+.tablewrap { overflow-x: auto; position: relative; } /* position: abs .sr text inside cells must resolve against the scroller, or it widens the page */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}

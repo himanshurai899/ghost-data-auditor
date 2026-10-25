@@ -15,7 +15,7 @@ export function UsageBadge({ runId, tick }: { runId: string | null; tick: number
       <span>{u.cached} cached</span>
       <span>{u.tokens.toLocaleString()} tokens</span>
       <span className="ok">billed $0</span>
-      <code title="output.csv sha256 prefix">sha256 {u.output_sha256.slice(0, 12)}</code>
+      <code title="output.csv sha256 prefix">sha256 {(u.output_sha256 ?? 'pending').slice(0, 12)}</code>
       {u.deterministic === true && <span className="ok" title="Rerun produced an identical output hash">&#10003; deterministic</span>}
       {u.deterministic === false && <span className="bad">not deterministic</span>}
     </footer>

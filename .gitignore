@@ -3,8 +3,12 @@
 .env.*
 !.env.example
 
+# files the IDE/agent saves from large pastes (they can contain API keys)
+*-pastedcontent-*.txt
+
 # runtime output (may contain dataset identifiers, T9)
 runs/
+.ghost/
 .cache/
 code.zip
 agent-trace/

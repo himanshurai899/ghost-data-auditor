@@ -2,7 +2,7 @@
 
 Run:  python -m ghost.api   (from code/; binds 127.0.0.1:8000 only)
 
-Controls (threats T13-T17): Host + CORS allow-lists, X-Console-Token on every POST (constant-time compare),
+Controls (threats T13-T17): Host + CORS allow-lists, X-Console-Token on every POST/PUT/DELETE (constant-time compare),
 regex-validated ids, Pydantic extra="forbid" with max lengths, single-run lock, CSP + nosniff, every string
 masked on the way out, generic error bodies (no paths, no stack traces), SSE tails only the validated run's
 trail file with a hard lifetime cap.
@@ -217,16 +217,16 @@ def create_app() -> FastAPI:
             return reject(403, "forbidden origin")
         cors = {} if (origin is None or path == "/api/token") else {
             "Access-Control-Allow-Origin": origin, "Vary": "Origin",
-            "Access-Control-Allow-Headers": "Content-Type, X-Console-Token", "Access-Control-Allow-Methods": "GET, POST"}
+            "Access-Control-Allow-Headers": "Content-Type, X-Console-Token", "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE"}
         if request.method == "OPTIONS":
             resp = JSONResponse({}, status_code=204 if cors else 403)
-        elif request.method not in ("GET", "POST"):
+        elif request.method not in ("GET", "POST", "PUT", "DELETE"):
             resp = reject(405, "method not allowed")
-        elif request.method == "POST" and not secrets.compare_digest(request.headers.get("x-console-token", "").encode(), TOKEN.encode()):
+        elif request.method != "GET" and not secrets.compare_digest(request.headers.get("x-console-token", "").encode(), TOKEN.encode()):
             resp = reject(401, "missing or invalid token")
-        elif request.method == "POST" and not request.headers.get("content-length", "").isdigit():
+        elif request.method in ("POST", "PUT") and not request.headers.get("content-length", "").isdigit():
             resp = reject(411, "length required")
-        elif request.method == "POST" and int(request.headers["content-length"]) > MAX_BODY:
+        elif request.method in ("POST", "PUT") and int(request.headers["content-length"]) > MAX_BODY:
             resp = reject(413, "body too large")
         else:
             resp = await call_next(request)
@@ -431,11 +431,15 @@ def create_app() -> FastAPI:
         return scrub({"label": it.label, "confidence": it.confidence, "source": it.source, "flags": list(it.flags),
                       "status_would_be": "changed" if injected and it.label == "DELETE" else "unchanged"})
 
-    try:  # POST /api/ask is built separately; see the module docstring for the deps shape
-        from . import ask
-        ask.register(app, SimpleNamespace(runs_dir=RUNS_DIR, load_trail=load_trail, validate_run_id=validate_run_id, mask_text=mask_text))
-    except ImportError:
-        pass
+    deps = SimpleNamespace(runs_dir=RUNS_DIR, load_trail=load_trail, validate_run_id=validate_run_id, mask_text=mask_text,
+                           scrub=scrub, token_ok=lambda t: secrets.compare_digest((t or "").encode(), TOKEN.encode()))
+    for name in ("ask", "settings_api", "metrics_api"):  # optional extension modules, each exposes register(app, deps)
+        try:
+            import importlib
+            importlib.import_module(f".{name}", __package__).register(app, deps)
+        except ModuleNotFoundError as e:
+            if e.name != f"{__package__}.{name}":
+                raise  # a real missing dependency inside the module, not an absent module
     return app
 
 
