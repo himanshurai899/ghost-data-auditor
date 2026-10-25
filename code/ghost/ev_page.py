@@ -159,12 +159,15 @@ def refresh() -> None:
     from ghost import ev_page, llm
     from ghost.contract import DATASET, read_csv
     llm.load_env(Path(sys.argv[sys.argv.index("--env") + 1])) if "--env" in sys.argv else llm.load_env()
-    ev_page.configure(llm.Client())
+    client = llm.Client()
+    ev_page.configure(client)
+    ledger = Path(__file__).resolve().parents[1] / "data" / "usage_cache_build.jsonl"  # tokens only, no PII
     CACHE.mkdir(parents=True, exist_ok=True)
     for meta in read_csv(DATASET / "evidence_files.csv"):
         path = DATASET / meta["file_path"]
         if path.suffix.lower() not in (".png", ".pdf"):
             continue
+        mark = len(client.usage)
         for attempt in range(4):
             try:
                 facts = ev_page._extract_file(path, meta)
@@ -174,6 +177,11 @@ def refresh() -> None:
                 time.sleep(5)
         else:
             raise RuntimeError(f"{meta['file_id']}: page extraction kept failing")
+        with open(ledger, "a", encoding="utf-8", newline="\n") as f:
+            for u in client.usage[mark:]:
+                f.write(json.dumps({"file_id": meta["file_id"], "provider": u["provider"], "model": u["model"], "role": u["role"],
+                                    "prompt_tokens": u["prompt_tokens"] or None, "output_tokens": u["output_tokens"] or None},
+                                   sort_keys=True) + "\n")
         (CACHE / f"{meta['file_id']}.json").write_text(_dump(facts), encoding="utf-8", newline="\n")
         print(meta["file_id"], len(facts))
 
