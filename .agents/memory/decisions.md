@@ -76,3 +76,6 @@ PR #81 (retained audit records dropped out of INCOMPLETE cases) keeps a resource
 
 **D-022 — Console topic guard is deterministic first** · 2026-10-25 · accepted
 The NVIDIA topic-control model returned HTTP 500 during build. `ask.check_guard` now refuses off-topic questions by keyword pre-filter before any model call and stops calling the guard endpoint after its first hard failure; the endpoint remains a second opinion when it works.
+
+**D-023 — Branch protection and review ownership** · 2026-10-25 · accepted (user decision)
+User: protect `main`; approval required when a change is not the user's own; the user is the required reviewer on PRs. → `.github/CODEOWNERS` (`* @himanshurai899`) and a GitHub ruleset on `main` (PR required, 1 approval, code-owner review, stale-approval dismissal, last-push approval, conversation resolution, no force-push, no deletion; admin bypass only in pull-request mode), plus a lighter ruleset on `develop`. Limits stated plainly: agents push with the user's own credentials, so GitHub cannot tell them apart by author, and GitHub does not let an author approve their own PR (the owner uses the explicit admin-bypass merge on their own PRs). The coordinator therefore never merges into `main` without the user's go-ahead in the conversation (see coordinator.md).
