@@ -61,6 +61,12 @@ ask ─► [DG1 Prompt] prompt-enhancer ─► task_spec
   `git worktree remove --force .claude/worktrees/<name>` → if Windows denies it because of a file lock, delete the folder, then `git worktree prune` → `git branch -D feature/<#>-<slug> worktree-<name>` → `git fetch --prune`.
 - At the end of each batch, `git worktree list` must show only the main checkout.
 
+## Protected branches (user decision, D-023)
+
+- `main` is protected by a GitHub ruleset: changes only through a pull request, code-owner review by the repository owner (`.github/CODEOWNERS`), no direct pushes, no force-push, no deletion. `develop` blocks force-push and deletion and auto-requests the owner on every PR.
+- Agents NEVER approve their own work, NEVER use `gh pr merge --admin` or the ruleset bypass, and NEVER merge into `main` unless the user has said so in the current conversation. A release PR into `main` is opened by the coordinator and merged by the user (or on the user's explicit go-ahead).
+- Every agent pushes under the user's GitHub login, so GitHub cannot distinguish agent commits from the user's by author: the PR trail (agent name in the PR body and `log.txt`) is the audit record.
+
 ## Gitflow
 
 | Branch | From | Merges into | Use |
