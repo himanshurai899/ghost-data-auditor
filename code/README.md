@@ -49,3 +49,12 @@ python scripts/gate.py all          # contract · eval · security · package ->
 ## Layout
 
 `main.py` CLI · `ghost/` pipeline (contract, safety, evidence, identity, intent, reasoning, planner, llm, audit, pipeline, api) · `prompts/` · `config/` · `evaluation/` (scorer + reports) · `tests/`
+
+## Operator console API
+
+```
+pip install -r code/requirements.txt
+cd code && python -m ghost.api        # binds 127.0.0.1:8000 only; contract in docs/console_api.md
+```
+
+`GET /api/token` returns the per-start token that every `POST` must send as `X-Console-Token`.
