@@ -7,7 +7,7 @@ evidence_files.csv row; it raises on malformed input and the file is quarantined
 import re
 from dataclasses import dataclass, field
 
-from . import ev_json, ev_sql, ev_text
+from . import ev_json, ev_page, ev_sql, ev_text
 from .contract import DATASET, read_csv
 from .safety import UnsafeInput, safe_evidence_path
 
@@ -19,7 +19,6 @@ PREFIX_SYSTEM = {
 }
 NULL_TOKENS = {"", "null", "none", "[redacted]"}
 KEY_FIELDS = ("email", "email_hash", "name", "phone", "user_id")
-DEFERRED = {".png", ".pdf"}  # P2-02: Nemotron Parse
 
 
 @dataclass(frozen=True)
@@ -71,8 +70,9 @@ def norm_keys(raw: dict) -> tuple:
 def ingest(trail, manifest=None, parsers=None) -> tuple[list[Fact], list[Coverage], list[tuple[str, str]]]:
     """Parse every manifest file. Returns (facts, coverage, quarantined[(file_id, reason)])."""
     manifest = read_csv(DATASET / "evidence_files.csv") if manifest is None else manifest
-    parsers = parsers or {".sql": ev_sql.parse, ".json": ev_json.parse, ".log": ev_text.parse, ".txt": ev_text.parse}
-    facts, coverage, quarantined, deferred = [], [], [], []
+    parsers = parsers or {".sql": ev_sql.parse, ".json": ev_json.parse, ".log": ev_text.parse, ".txt": ev_text.parse,
+                         ".png": ev_page.parse, ".pdf": ev_page.parse}
+    facts, coverage, quarantined = [], [], []
     for meta in manifest:
         fid = meta["file_id"]
         try:
@@ -81,9 +81,6 @@ def ingest(trail, manifest=None, parsers=None) -> tuple[list[Fact], list[Coverag
             quarantined.append((fid, str(e)))
             continue
         suffix = path.suffix.lower()
-        if suffix in DEFERRED:
-            deferred.append(fid)
-            continue
         if suffix not in parsers:
             quarantined.append((fid, f"no parser for {suffix}"))
             continue
@@ -98,7 +95,4 @@ def ingest(trail, manifest=None, parsers=None) -> tuple[list[Fact], list[Coverag
     facts += activity.load()
     for fid, reason in quarantined:
         trail.event("ingest", f"Quarantined {fid}: {reason}", verdict="WARN")
-    if deferred:
-        trail.event("ingest", f"{len(deferred)} image/PDF files deferred to page extraction (P2-02).",
-                    detail={"files": deferred})
     return facts, coverage, quarantined
