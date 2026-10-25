@@ -55,10 +55,11 @@ def test_bad_input_aborts_at_g1(tmp_path):
         pipeline.run(bad, tmp_path / "o.csv", runs_dir=tmp_path / "runs", offline=True)
 
 
-def test_unimplemented_downstream_stage_degrades_safely(run, monkeypatch, tmp_path):
-    from ghost import intent
+def test_unplannable_case_degrades_safely(run, monkeypatch, tmp_path):
+    from ghost import intent, planner
     monkeypatch.setattr(intent, "classify", lambda text, offline=True: intent.Intent("DELETE", 0.9, "test"))
-    out, m = run()                                   # planner is still a stub: the run must not crash
+    monkeypatch.setattr(planner, "plan", lambda verdicts: (_ for _ in ()).throw(ValueError("no verdicts")))
+    out, m = run()                                   # an unplannable case must not abort the run
     assert c.validate_output(out, SAMPLE) == [] and m["g6_failures"] == 0
     events = [json.loads(x) for x in (tmp_path / "runs" / m["run_id"] / "trail.jsonl").read_text(encoding="utf-8").splitlines()]
-    assert any(e["stage"] == "plan" and e["verdict"] == "WARN" and "not implemented" in e["summary"] for e in events)
+    assert any(e["stage"] == "plan" and e["verdict"] == "WARN" and "could not plan" in e["summary"] for e in events)

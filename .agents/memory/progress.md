@@ -19,14 +19,16 @@ PRs into `develop` don't auto-close issues (GitHub only auto-closes on the defau
 | P1-01 Dataset forensics | #10 | PR #58; docs/evidence_field_map.md, F-011..F-022, D-016 |
 | P2-10 NVIDIA retrieval client | #52 | PR into develop; test_llm.py (19, red → green) + live smoke (3, RUN_LIVE=1) |
 
+| P1-05 umbrella + parsers | #14 #60 #61 #62 | PR #59 #67 #68 #69; 4,465 facts from 94 files, 0 quarantined |
+| P1-06 Activity claims | #15 | PR #66 |
+| P1-09 Temporal linker | #18 | PR #65; --strict-temporal (D-017) |
+| P1-10/11 State + policy | #19 #20 | PR #70 |
+| P1-12 Planner | #21 | PR #71 |
+
 ## Open, P1 MVP (next up, in order)
 
 | Id | # | Status | Owner | Note |
 |---|---|---|---|---|
-| P1-05 Evidence ingest (umbrella) | #14 | doing | coordinator | foundation merged (PR #59, D-018); closes when #60–#62 merge |
-| P1-05a SQL parser | #60 | todo | implementer | ev_sql.py |
-| P1-05b JSON parser | #61 | todo | implementer | ev_json.py |
-| P1-05c Log/TXT parser | #62 | todo | implementer | ev_text.py |
 | P1-06 Activity/audit facts | #15 | todo | implementer | |
 | P1-09 Temporal linker | #18 | todo | implementer | D-017 switch `--strict-temporal`; report both readings |
 | P1-10 State reconstruction | #19 | todo | implementer | |
@@ -44,3 +46,4 @@ Later phases: P2 #24–#32 · P3 #33–#40 · P4 #41–#46 · P5 #47–#51.
 | 2026-10-24 | caf882b | 57 pass | 0.000 | 0.000 | 0.000 | skeleton baseline (stages stubbed) |
 | 2026-10-25 | feature/52 | 76 pass + 3 live | 0.000 | 0.000 | 0.000 | NVIDIA client; no pipeline logic yet |
 | 2026-10-25 | 82a4922 | 147 pass + 3 live | 0.000 | 0.000 | 0.000 | identity + intent merged; planner still a stub |
+| 2026-10-25 | P1 end | 209 pass + 3 live | 0.969 | 0.943 | 0.531 | P1 phase gate: suite + gates PASS; full run 518 rows, 151/357/10 |

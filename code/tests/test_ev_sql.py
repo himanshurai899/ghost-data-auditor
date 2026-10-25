@@ -198,7 +198,7 @@ def test_all_real_sql_files_parse_without_quarantine():
     assert len(manifest) == 24
     facts, cov, quarantined = ev.ingest(_Trail(), manifest=manifest)
     assert quarantined == []
-    assert {f.evidence_id for f in facts} <= {m["file_id"] for m in manifest}
+    assert {f.evidence_id for f in facts if f.evidence_kind == "FILE"} <= {m["file_id"] for m in manifest}
     assert len(facts) > 500 and len(cov) > 20
 
 
