@@ -12,6 +12,10 @@ export interface KeyEntry {
 export interface SettingsData {
   keys: KeyEntry[]; active: Record<string, string>; models: Record<string, string>
   base_url: string; retrieval_url: string; env_keys: Record<string, boolean>; vault_available: boolean
+  /** vault encryption backend ('dpapi' | 'fernet') or null when unavailable */
+  storage?: string | null
+  /** built-in model id per role (before .env and overrides) */
+  defaults?: Record<string, string>
 }
 export interface TestResult { ok: boolean; status: number | null; latency_ms: number; model: string; message: string }
 export interface Catalog { models: { id: string; owned_by: string }[]; note: string }

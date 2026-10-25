@@ -9,8 +9,8 @@ const USE: Record<string, string> = {
 }
 
 export function ModelsCard({ data, cat, readOnly, setData }: { data: S.SettingsData; cat: S.Catalog | null; readOnly: boolean; setData: (d: S.SettingsData) => void }) {
-  // `defaults` = the model ids the server reported when this page loaded (env/override-resolved); "reset" restores that value.
-  const [defaults] = useState(data.models)
+  // `defaults` = the built-in ids from the server (falls back to the ids reported at load); "reset" restores that value.
+  const [defaults] = useState(data.defaults ?? data.models)
   const [draft, setDraft] = useState<Record<string, string>>({})
   const [err, setErr] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState<string | null>(null)
