@@ -154,7 +154,7 @@ Every item maps to a moment you can show on screen.
 
 ## 8. Operating cadence (solo)
 
-- **Coordinator-driven.** The coordinator picks ready issues (dependencies closed) and runs **at most 3 agents in parallel**, each in its own worktree, on issues with disjoint files.
+- **Coordinator-driven.** The coordinator picks ready issues (dependencies closed) and runs **at most 5 agents in parallel** (D-019), each in its own worktree, on issues with disjoint files.
 - **Gitflow** (full rules in `.agents/agents/coordinator.md`):
   - `feature/<issue#>-<slug>` and `bugfix/…` branch from `develop`, and come back through a PR after gates DG3–DG5 pass.
   - Each phase exit is `release/p<n>` → `main`, then tag `p<n>-<name>` and merge back into `develop`.

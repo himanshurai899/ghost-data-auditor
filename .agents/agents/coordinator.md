@@ -45,11 +45,11 @@ ask ─► [DG1 Prompt] prompt-enhancer ─► task_spec
 | Threat model, gates, secrets, packaging hygiene | `security-guardian` |
 | Ambiguous or vague ask | `prompt-enhancer` first, always |
 
-## Parallel dispatch (max 3 agents)
+## Parallel dispatch (max 5 agents)
 
 1. **Pick candidates.** Open issues in the current phase whose `depends_on` issues are all closed (`docs/github_issues.csv` + `gh issue list`).
 2. **Check independence.** Their `Files:` sets must not overlap, and none of them may touch `contract.py`, `gate.py` or test fixtures shared by another candidate. Shared-file work runs in sequence.
-3. **Dispatch at most 3 at once.** Each agent runs in its own git worktree (`isolation: "worktree"`) on its own feature branch. Never run two agents in one working tree.
+3. **Dispatch at most 5 at once.** Each agent runs in its own git worktree (`isolation: "worktree"`) on its own feature branch. Never run two agents in one working tree.
 4. **Brief each agent** with the issue number, its `<task_spec>` from prompt-enhancer, the TDD rule, the Gitflow rules below, and "log your turn to the shared log.txt with parent_agent=coordinator".
 5. **Integrate one at a time.** When an agent finishes, re-run gates on its branch, open the PR, merge it, then rebase the remaining in-flight branches on `develop` before they merge.
 

@@ -3,7 +3,7 @@
 Repo: https://github.com/himanshurai899/ghost-data-auditor (private). Backlog id `P<phase>-<nn>` ↔ GitHub issue `#N` (#1–#51 follow CSV order).
 Status: `todo` · `doing` · `blocked` · `done` (done = issue closed with an evidence comment).
 Gitflow (D-014): `feature/<#>-<slug>` from `develop` → PR → `develop`; phase exit `release/p<n>` → `main` + tag. Commit `P1-05 (#14): <what>`.
-PRs into `develop` don't auto-close issues (GitHub only auto-closes on the default branch), so close them manually with an evidence comment after the merge. Max 3 parallel agents, each in its own worktree.
+PRs into `develop` don't auto-close issues (GitHub only auto-closes on the default branch), so close them manually with an evidence comment after the merge. Max 5 parallel agents (D-019), each in its own worktree.
 
 ## Done
 
