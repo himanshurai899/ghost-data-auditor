@@ -2,6 +2,7 @@
 S5 State, S6 Policy, S7 Plan -G6-] S8 Emit -G7- (architecture.md §4). Used by the CLI and the console API."""
 import hashlib
 import json
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -36,9 +37,9 @@ def _write_usage(trail_dir: Path, usage_rows) -> None:
 
 
 def run(requests_path: Path, out_path: Path, runs_dir: Path = REPO / "runs", cases=None, offline: bool = True,
-        strict_temporal: bool = False, client=None) -> dict:
+        strict_temporal: bool = False, client=None, run_id: str | None = None) -> dict:
     requests_path, out_path = Path(requests_path), Path(out_path)
-    trail = Trail(runs_dir, new_run_id())
+    trail = Trail(runs_dir, run_id or new_run_id())
     manifest = {"run_id": trail.run_id, "git_sha": _git_sha(), "offline": offline, "strict_temporal": strict_temporal, "models": llm.models(),
                 "requests": requests_path.name}
 
@@ -90,6 +91,8 @@ def run(requests_path: Path, out_path: Path, runs_dir: Path = REPO / "runs", cas
 
     # S8 Emit + G7
     write_output(rows, out_path)
+    if out_path.resolve() != (trail.dir / "output.csv").resolve():
+        shutil.copyfile(out_path, trail.dir / "output.csv")  # the console reads the run's own copy
     g7 = validate_output(out_path, requests_path, None if not cases else set(cases))
     if g6_failures:
         g7.append(f"{g6_failures} cases failed G6")
