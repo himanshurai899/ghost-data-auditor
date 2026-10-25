@@ -2,6 +2,7 @@
 
     python scripts/gate.py contract   # G7 on ./output.csv
     python scripts/gate.py eval       # sample run + scorer + no-regression vs last PASS
+    python scripts/gate.py determinism # two offline sample runs must be byte-identical
     python scripts/gate.py security   # secrets, unsafe APIs, golden leak, PII, .env tracking (DG5)
     python scripts/gate.py package    # build code.zip from an allowlist and scan it
     python scripts/gate.py all
@@ -10,8 +11,10 @@ Set AGENT_NAME to record who ran the gate. Exit code 1 if any gate FAILs.
 import csv
 import os
 import re
+import hashlib
 import subprocess
 import sys
+import tempfile
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -208,7 +211,25 @@ def gate_package():
     return "PASS", f"code.zip with {len(members)} files, secret scan clean"
 
 
-GATES = {"contract": gate_contract, "eval": gate_eval, "security": gate_security, "package": gate_package}
+def identical_bytes(a: Path, b: Path) -> tuple[bool, str]:
+    """(same bytes?, sha256 prefix of the first file)."""
+    da, db = Path(a).read_bytes(), Path(b).read_bytes()
+    return da == db, hashlib.sha256(da).hexdigest()[:12]
+
+
+def gate_determinism():
+    from ghost.contract import DATASET
+    from ghost.pipeline import run
+    with tempfile.TemporaryDirectory() as d:
+        d = Path(d)
+        for n in ("a", "b"):
+            run(DATASET / "sample_deletion_requests.csv", d / f"{n}.csv", runs_dir=d / "runs", offline=True)
+        same, sha = identical_bytes(d / "a.csv", d / "b.csv")
+    return ("PASS", f"2 offline sample runs byte-identical sha256={sha}") if same else ("FAIL", f"outputs differ (first run sha256={sha})")
+
+
+GATES = {"contract": gate_contract, "eval": gate_eval, "determinism": gate_determinism, "security": gate_security,
+         "package": gate_package}
 
 
 def main(argv) -> int:
