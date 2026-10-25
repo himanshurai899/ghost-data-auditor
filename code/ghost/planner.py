@@ -34,7 +34,10 @@ def plan(verdicts) -> tuple[str, list[dict]]:
     bad = [v for v in verdicts if not v.compliant]
     steps = []
     if not bad:
-        steps = [_step(v, _VERIFY[v.required_state], v.evidence_id) for v in verdicts]
+        # a COMPLETE step must cite proof; a resource known only from late files has none (stateless stub)
+        steps = [_step(v, _VERIFY[v.required_state], v.evidence_id) for v in verdicts if v.evidence_id]
+        if not steps:
+            raise ValueError("planner: no citable verification")
         status = "COMPLETE"
     else:
         for v in bad:
