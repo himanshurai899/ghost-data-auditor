@@ -126,7 +126,7 @@ def audit_case(req: dict, ctx: dict, trail: Trail) -> tuple[str, list[dict]]:
                 verdict="WARN" if breach else "PASS")
 
     # S5-S7
-    verdicts = reasoning.evaluate(facts, ctx["rules"], req["audit_at"])
+    verdicts = reasoning.evaluate(facts, ctx["rules"], req["audit_at"], ctx["coverage"])
     try:
         return planner.plan(verdicts)
     except NotImplementedError as e:  # ponytail: skeleton safety net while P1-10..P1-12 land; delete with #21
