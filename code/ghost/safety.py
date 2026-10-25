@@ -17,11 +17,14 @@ class UnsafeInput(ValueError):
 def safe_evidence_path(manifest_path: str) -> Path:
     """Resolve a manifest file_path (relative to dataset/) and confine it to dataset/evidence (T5, T6)."""
     base = (DATASET / "evidence").resolve()
-    p = (DATASET / manifest_path).resolve()
+    try:
+        p = (DATASET / manifest_path).resolve()
+    except (ValueError, OSError) as e:  # NUL byte, over-long path: hostile input, not a crash
+        raise UnsafeInput(f"unusable path: {manifest_path[:80]!r}") from e
     if not p.is_relative_to(base):
         raise UnsafeInput(f"path escapes evidence dir: {manifest_path!r}")
     if not p.is_file():
-        raise UnsafeInput(f"not a file: {manifest_path!r}")
+        raise UnsafeInput(f"not a file: {manifest_path[:80]!r}")
     if p.stat().st_size > MAX_FILE_BYTES:
         raise UnsafeInput(f"file over {MAX_FILE_BYTES} bytes: {manifest_path!r}")
     return p
@@ -55,11 +58,17 @@ def open_sandboxed_sqlite(sql_text: str) -> sqlite3.Connection:
     except sqlite3.DatabaseError:
         conn.close()
         raise
-    conn.set_progress_handler(None, 0)
-    return conn
+    return conn  # budget and authorizer stay on: callers query this connection too
 
 
-_EMAIL = re.compile(r"([A-Za-z0-9])[A-Za-z0-9._%+-]*@([A-Za-z0-9.-]+\.[A-Za-z]{2,})")
+# the lookbehind makes a match start only at the start of a local-part run, so a long run without "@" is O(n), not O(n^2)
+_EMAIL = re.compile(r"(?<![A-Za-z0-9._%+-])([A-Za-z0-9._%+-]+)@([A-Za-z0-9.-]+\.[A-Za-z]{2,})")
+
+
+def _mask_email(m: re.Match) -> str:
+    local = m.group(1)
+    i = next((k for k, ch in enumerate(local) if ch.isalnum()), 0)
+    return f"{local[:i + 1]}***@{m.group(2)}"
 _PHONE = re.compile(r"\+\d[\d ()\-]{6,}\d")  # all 1,034 dataset phones start with "+"; dates don't
 _HASH = re.compile(r"\b([0-9a-f]{6})[0-9a-f]{58}\b")
 
@@ -67,7 +76,7 @@ _HASH = re.compile(r"\b([0-9a-f]{6})[0-9a-f]{58}\b")
 def mask(value: str) -> str:
     """Mask one identifier for human-readable output. Resource ids pass through."""
     if _EMAIL.fullmatch(value):
-        return _EMAIL.sub(r"\1***@\2", value)
+        return _EMAIL.sub(_mask_email, value)
     if _HASH.fullmatch(value):
         return value[:6] + "…"
     if _PHONE.fullmatch(value):
@@ -77,6 +86,6 @@ def mask(value: str) -> str:
 
 def mask_text(text: str) -> str:
     """Scrub emails, phone numbers and sha256 hashes out of free text (T9)."""
-    text = _EMAIL.sub(r"\1***@\2", text)
+    text = _EMAIL.sub(_mask_email, text)
     text = _HASH.sub(r"\1…", text)
     return _PHONE.sub(lambda m: "***" + re.sub(r"\D", "", m.group())[-2:], text)
