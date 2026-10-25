@@ -36,7 +36,10 @@ export default function App() {
     try {
       const r = await getRuns()
       setRuns(r)
-      setRunId((cur) => (cur && r.some((x) => x.run_id === cur) ? cur : r[0]?.run_id ?? null))
+      // default: keep the remembered run; otherwise the newest run of the largest size (gate checks create newer 32-case
+      // sample runs, and the console should open on the full audit, not a sample)
+      const biggest = Math.max(0, ...r.map((x) => x.cases))
+      setRunId((cur) => (cur && r.some((x) => x.run_id === cur) ? cur : r.find((x) => x.cases === biggest)?.run_id ?? r[0]?.run_id ?? null))
     } catch (e) { setMsg(String(e)) }
   }, [])
   useEffect(() => { health().then((ok) => { setApi(ok ? 'online' : 'offline'); refresh() }) }, [refresh])
