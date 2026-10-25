@@ -1,0 +1,24 @@
+[
+ {
+  "captured_at": "2026-09-12T07:30:00Z",
+  "category": "SUPPORT_ATTACHMENT",
+  "evidence_id": "evidence_58",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-09-12T07:30:00Z",
+  "pii_fields": [],
+  "resource_id": "support_001",
+  "subject_keys": [
+   [
+    "email_hash",
+    "284c7b87b8237e241293c9e81c8f0bef10c4dc1dffefb382c45107ea40c39668"
+   ],
+   [
+    "phone",
+    "919876573142"
+   ]
+  ],
+  "system_id": "support_platform"
+ }
+]

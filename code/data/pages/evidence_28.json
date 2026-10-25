@@ -1,0 +1,22 @@
+[
+ {
+  "captured_at": "2026-05-24T07:00:00Z",
+  "category": "SUPPORT_MESSAGE",
+  "evidence_id": "evidence_28",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-05-24T07:00:00Z",
+  "pii_fields": [
+   "email"
+  ],
+  "resource_id": "support_1034",
+  "subject_keys": [
+   [
+    "email_hash",
+    "2223309bb52ac82b56ee55504acf27956503f83a61a81703bd9f24a5f5a292c6"
+   ]
+  ],
+  "system_id": "support_platform"
+ }
+]

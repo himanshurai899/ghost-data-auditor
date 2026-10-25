@@ -1,0 +1,74 @@
+[
+ {
+  "captured_at": "2026-04-29T09:00:00Z",
+  "category": "BACKUP_ARCHIVE",
+  "evidence_id": "evidence_32",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-04-29T09:00:00Z",
+  "pii_fields": [],
+  "resource_id": "backup_9286",
+  "subject_keys": [
+   [
+    "email_hash",
+    "a7135c40f536383ed4a30885d386a40d2a8eb2f37ca22dc1a44a72ab0d8bd18a"
+   ]
+  ],
+  "system_id": "backup_service"
+ },
+ {
+  "captured_at": "2026-04-29T09:00:00Z",
+  "category": "BACKUP_ARCHIVE",
+  "evidence_id": "evidence_32",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-04-29T09:00:00Z",
+  "pii_fields": [],
+  "resource_id": "backup_9287",
+  "subject_keys": [
+   [
+    "email_hash",
+    "7001f88650909c41c862cc4394921012deaa96f9d5ef925f4b052ad6f30aeb62"
+   ]
+  ],
+  "system_id": "backup_service"
+ },
+ {
+  "captured_at": "2026-04-29T09:00:00Z",
+  "category": "BACKUP_ARCHIVE",
+  "evidence_id": "evidence_32",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-04-29T09:00:00Z",
+  "pii_fields": [],
+  "resource_id": "backup_9288",
+  "subject_keys": [
+   [
+    "email_hash",
+    "368e0776d757d5fa352269b247642f161fd9a0d15d59ea34259b79f61f5ad1d4"
+   ]
+  ],
+  "system_id": "backup_service"
+ },
+ {
+  "captured_at": "2026-04-29T09:00:00Z",
+  "category": "BACKUP_ARCHIVE",
+  "evidence_id": "evidence_32",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-04-29T09:00:00Z",
+  "pii_fields": [],
+  "resource_id": "backup_9291",
+  "subject_keys": [
+   [
+    "email_hash",
+    "272cd42cfe5629f0a60fc6d88462f16d930dcf90680ce0a17bb0690a97df3a57"
+   ]
+  ],
+  "system_id": "backup_service"
+ }
+]

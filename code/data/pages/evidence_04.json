@@ -1,0 +1,28 @@
+[
+ {
+  "captured_at": "2026-09-26T11:00:00Z",
+  "category": "USER_PROFILE",
+  "evidence_id": "evidence_04",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-09-26T11:00:00Z",
+  "pii_fields": [],
+  "resource_id": "account_5762",
+  "subject_keys": [
+   [
+    "email_hash",
+    "db83a42f1f41508b4c44fc526100f9663ea8f72b347f16769ef3ac6975015fa2"
+   ],
+   [
+    "phone",
+    "819076102507"
+   ],
+   [
+    "user_id",
+    "user_11"
+   ]
+  ],
+  "system_id": "account_service"
+ }
+]

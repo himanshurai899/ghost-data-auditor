@@ -1,0 +1,74 @@
+[
+ {
+  "captured_at": "2026-06-18T12:00:00Z",
+  "category": "USER_EXPORT",
+  "evidence_id": "evidence_23",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-06-18T12:00:00Z",
+  "pii_fields": [],
+  "resource_id": "export_1258",
+  "subject_keys": [
+   [
+    "email_hash",
+    "12810566ec94895965476862c1486912c1e2a90dced75f5adeed8e675e9759a4"
+   ]
+  ],
+  "system_id": "export_service"
+ },
+ {
+  "captured_at": "2026-06-18T12:00:00Z",
+  "category": "USER_EXPORT",
+  "evidence_id": "evidence_23",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-06-18T12:00:00Z",
+  "pii_fields": [],
+  "resource_id": "export_1259",
+  "subject_keys": [
+   [
+    "email_hash",
+    "61b09761f981abf5391d437e4b8c0316e4e030ce983b97bd6723a3402c777f0a"
+   ]
+  ],
+  "system_id": "export_service"
+ },
+ {
+  "captured_at": "2026-06-18T12:00:00Z",
+  "category": "USER_EXPORT",
+  "evidence_id": "evidence_23",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-06-18T12:00:00Z",
+  "pii_fields": [],
+  "resource_id": "export_1260",
+  "subject_keys": [
+   [
+    "email_hash",
+    "0649eddaba37af918d82b64da379e6623d34cf290b2a26ecbe53bafc1484f8af"
+   ]
+  ],
+  "system_id": "export_service"
+ },
+ {
+  "captured_at": "2026-06-18T12:00:00Z",
+  "category": "USER_EXPORT",
+  "evidence_id": "evidence_23",
+  "evidence_kind": "FILE",
+  "is_claim": false,
+  "observation": "PRESENT",
+  "observed_at": "2026-06-18T12:00:00Z",
+  "pii_fields": [],
+  "resource_id": "export_1261",
+  "subject_keys": [
+   [
+    "email_hash",
+    "f6ef14336a9bfe2a63e445f2642e9145efc07b6840189a83f5caa0c2fa548469"
+   ]
+  ],
+  "system_id": "export_service"
+ }
+]
