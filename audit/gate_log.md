@@ -22,3 +22,7 @@ Append-only. Written by `scripts/gate.py`.
 | 2026-10-24T19:21:05Z | security | PASS | 103 files clean (secrets, unsafe APIs, golden leak, PII, .env) | coordinator | 23bc847 |
 | 2026-10-24T19:21:05Z | package | PASS | code.zip with 38 files, secret scan clean | coordinator | 23bc847 |
 | 2026-10-24T19:29:39Z | security | PASS | 105 files clean (secrets, unsafe APIs, golden leak, PII, .env) | coordinator | 4711f52 |
+| 2026-10-25T11:42:30Z | contract | PASS | output.csv valid (G7) | coordinator | 17f9560 |
+| 2026-10-25T11:42:31Z | eval | PASS | status=0.969 step_f1=0.943 field=0.830 seq=0.531 (32 cases) | coordinator | 17f9560 |
+| 2026-10-25T11:42:32Z | security | PASS | 127 files clean (secrets, unsafe APIs, golden leak, PII, .env) | coordinator | 17f9560 |
+| 2026-10-25T11:42:32Z | package | PASS | code.zip with 61 files, secret scan clean | coordinator | 17f9560 |

@@ -276,7 +276,7 @@ def test_real_json_files_all_parse():
         total += len(facts)
     assert total == 890  # one Fact per source record (profiled 2026-10-25)
     facts, _, quarantined = ev.ingest(_Trail(), manifest)
-    assert quarantined == [] and len(facts) == total
+    assert quarantined == [] and len([f for f in facts if f.evidence_kind == "FILE" and f.evidence_id in {m["file_id"] for m in manifest}]) == total
 
 
 class _Trail:

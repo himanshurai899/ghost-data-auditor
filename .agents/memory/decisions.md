@@ -67,3 +67,6 @@ F-015 conflicts with AGENTS.md "evidence created later must not change the answe
 
 **D-019 — Parallel agent cap raised from 3 to 5** · 2026-10-25 · accepted (user decision, supersedes the cap in D-014)
 Users instruction "make 5 agents now at work". Rules unchanged: dependency-free issues, disjoint files, one worktree per agent, rebase from origin/develop, coordinator merges one at a time. The 5-wide batch is costlier against the model session limit; a limit hit pauses all agents (it happened once, 3 agents), and they resume with SendMessage after the reset.
+
+**D-020 — Testing deferred to phase boundaries (suspends D-008 per-issue TDD)** · 2026-10-25 · accepted (user decision)
+User: "skip testing right now, focus on code completion"; "full suite testing only after each phase code completion". → Agents write complete working code, do a quick manual smoke run only, and do not write tests or run pytest/gate.py per issue. The coordinator merges PRs after a read-through, without re-running the suite. At each phase end (P1, P2, ...) we run the full suite and `gate.py all`, write the missing tests, and fix what breaks BEFORE the release branch. Agents that already finished tests (#16, #17, #18, #15) keep them. Risk accepted: regressions surface at the phase gate, not per PR.
