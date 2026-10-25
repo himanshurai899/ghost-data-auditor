@@ -1,10 +1,11 @@
 """Gated pipeline: S0 Load -G1- S1 Ingest -G2- per case [S2 Intent -G3- S3 Identity -G4- S4 Link -G5-
 S5 State, S6 Policy, S7 Plan -G6-] S8 Emit -G7- (architecture.md §4). Used by the CLI and the console API."""
 import hashlib
+import json
 import subprocess
 from pathlib import Path
 
-from . import evidence, identity, intent, llm, orphan, planner, reasoning
+from . import ev_page, evidence, identity, intent, llm, orphan, planner, reasoning
 from .audit import Trail, new_run_id
 from .contract import (DATASET, REPO, check_inputs, load_evidence_index, load_requests, read_csv, validate_output,
                        validate_row, write_output, ts)
@@ -26,6 +27,12 @@ def _git_sha() -> str:
                               text=True, timeout=5).stdout.strip() or "unknown"
     except (OSError, subprocess.SubprocessError):
         return "unknown"
+
+
+def _write_usage(trail_dir: Path, usage_rows) -> None:
+    with open(Path(trail_dir) / "usage.jsonl", "w", encoding="utf-8", newline="\n") as f:
+        for u in usage_rows:
+            f.write(json.dumps(u, sort_keys=True) + "\n")
 
 
 def run(requests_path: Path, out_path: Path, runs_dir: Path = REPO / "runs", cases=None, offline: bool = True,
@@ -86,6 +93,9 @@ def run(requests_path: Path, out_path: Path, runs_dir: Path = REPO / "runs", cas
     g7 = validate_output(out_path, requests_path, None if not cases else set(cases))
     if g6_failures:
         g7.append(f"{g6_failures} cases failed G6")
+    usage = list(getattr(ev_page._client, "usage", []))  # the Client configured for the run, if any
+    _write_usage(trail.dir, usage)
+    manifest |= {"llm_calls": len(usage), "llm_tokens": sum(u.get("total_tokens", 0) for u in usage)}
     manifest |= {"cases": len(rows), "g6_failures": g6_failures, "output": out_path.name,
                  "output_sha256": sha256_file(out_path),
                  "inputs": {p.name: sha256_file(p) for p in [requests_path, DATASET / "evidence_files.csv",
