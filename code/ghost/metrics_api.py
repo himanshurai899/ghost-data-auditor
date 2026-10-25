@@ -195,7 +195,8 @@ def register(app, deps):
             "findings_by_system": [{"system_id": k} | v for k, v in sorted(fbs.items())],
             "gates": [{"gate": g, "pass": c["PASS"], "warn": c["WARN"], "fail": c["FAIL"]}
                       for g, c in sorted(gates.items(), key=lambda kv: int(kv[0][1:]) if kv[0][1:].isdigit() else 99)],
-            "runs": runs, "evidence_mix": _mix(rid, d, m) if rows else {t: 0 for t in "ABCD"}})
+            "runs": runs, "evidence_mix": _mix(rid, d, m) if rows else {t: 0 for t in "ABCD"},
+            "llm_calls": m.get("llm_calls"), "offline": m.get("offline")})
 
     @app.get("/api/metrics/cost")
     def cost(run_id: str | None = None):

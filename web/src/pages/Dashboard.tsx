@@ -113,7 +113,8 @@ export default function Dashboard(p: ScreenProps) {
         <StatCard label="Cases audited" value={num(total)} icon="file" sub={<>in run <code>{d.run_id.slice(0, 16)}</code></>} />
         <StatCard label="Incomplete" tone="bad" icon="warn" value={total ? `${Math.round((1000 * inc) / total) / 10}%` : 'n/a'} sub={`${num(inc)} of ${num(total)} cases`} />
         <StatCard label="Ghosts found" tone="primary" icon="eye" value={num(d.ghosts.count)} sub={`of ${num(d.ghosts.of)} reported-complete${d.ghosts.pct !== null ? ` (${d.ghosts.pct}%)` : ''}`} />
-        <StatCard label="Runtime model calls" icon="cog" value="0" sub={<>Offline run is deterministic code. <a href="#/cost">See cost</a></>} />
+        <StatCard label="Runtime model calls" icon="cog" value={d.llm_calls == null ? 'n/a' : num(d.llm_calls)}
+          sub={<>{d.llm_calls === 0 && d.offline ? 'Offline run: deterministic code only. ' : d.llm_calls == null ? 'Not recorded for this run. ' : ''}<a href="#/cost">See cost</a></>} />
         <StatCard label="Determinism" icon="check" tone={determinism === false ? 'warn' : determinism ? 'ok' : 'neutral'}
           value={determinism === null ? 'n/a' : determinism ? 'Match' : 'Differs'}
           sub={determinism === null ? 'No earlier run with the same case count and temporal mode to compare.' : <>output hash vs run <code>{prev?.run_id.slice(0, 16)}</code></>} />

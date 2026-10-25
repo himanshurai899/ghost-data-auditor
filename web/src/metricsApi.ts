@@ -14,6 +14,9 @@ export interface DashboardData {
   gates: { gate: string; pass: number; warn: number; fail: number }[]
   runs: { run_id: string; started: string; cases: number; counts: Counts; output_sha256: string; strict_temporal: boolean; duration_s: number | null }[]
   evidence_mix: { A: number; B: number; C: number; D: number }
+  /** model calls made during the run (null for runs recorded before usage logging) */
+  llm_calls?: number | null
+  offline?: boolean | null
 }
 
 export interface ModelRow {
