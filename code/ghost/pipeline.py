@@ -36,7 +36,7 @@ def _write_usage(trail_dir: Path, usage_rows) -> None:
 
 
 def run(requests_path: Path, out_path: Path, runs_dir: Path = REPO / "runs", cases=None, offline: bool = True,
-        strict_temporal: bool = False) -> dict:
+        strict_temporal: bool = False, client=None) -> dict:
     requests_path, out_path = Path(requests_path), Path(out_path)
     trail = Trail(runs_dir, new_run_id())
     manifest = {"run_id": trail.run_id, "git_sha": _git_sha(), "offline": offline, "strict_temporal": strict_temporal, "models": llm.models(),
@@ -73,7 +73,7 @@ def run(requests_path: Path, out_path: Path, runs_dir: Path = REPO / "runs", cas
 
     ctx = {"identity": identity.build_index(), "facts": facts, "coverage": coverage, "rules": read_csv(DATASET / "deletion_rules.csv"),
            "evidence_index": load_evidence_index(), "offline": offline,
-           "strict_temporal": strict_temporal}
+           "strict_temporal": strict_temporal, "client": client}
     ctx["orphans"] = orphan.discover(all_requests, ctx)
     rows, g6_failures = [], 0
     for req in requests:
@@ -112,7 +112,7 @@ def audit_case(req: dict, ctx: dict, trail: Trail) -> tuple[str, list[dict]]:
     cid = req["case_id"]
 
     # S2 Intent + G3
-    it = intent.classify(req["request_text"], offline=ctx["offline"])
+    it = intent.classify(req["request_text"], offline=ctx["offline"], client=ctx.get("client"))
     if it.label == "UNKNOWN" or it.flags:
         trail.event("intent", f"Intent {it.label} (source={it.source}, flags={list(it.flags)}); "
                               "no deletion authorized without a confident DELETE.", case_id=cid, gate="G3", verdict="WARN")

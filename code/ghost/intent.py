@@ -5,9 +5,13 @@ Offline rules cover every language in the data (en, es, pt, fr, ja, ko). Order:
 2. remove negated deletion phrases ("don't delete", "not asking for deletion") -> strong NOT_DELETE signal;
 3. affirmative deletion vs keep-account / non-deletion asks (access, export, correction, opt-out, login help).
 """
+import json
 import re
 import unicodedata
 from dataclasses import dataclass
+from pathlib import Path
+
+from .contract import DATASET, read_csv
 
 LABELS = ("DELETE", "NOT_DELETE", "UNKNOWN")
 
@@ -109,8 +113,23 @@ def signals(text: str) -> dict:
             "other": sorted(k for k, rx in _OTHER.items() if rx.search(t))}
 
 
-def classify(text: str, offline: bool = True) -> Intent:
-    """Rules only.  TODO(P2-03): LLM + embedding neighbours when confidence < 0.7 and not offline."""
+def classify(text: str, offline: bool = True, client=None) -> Intent:
+    """Rules first. The LLM runs only when online, a client is given and the rules are UNKNOWN or < 0.7 confident."""
+    r = _rules(text)
+    if offline or client is None or (r.label != "UNKNOWN" and r.confidence >= 0.7):
+        return r
+    try:
+        label, conf, flags = _ask_llm(text, client)
+    except Exception:  # LLMError, offline-cache miss, bad JSON, network: the rules result stands
+        return r
+    if "injection_marker" in r.flags:  # the LLM can never clear an injection flag
+        flags = tuple(dict.fromkeys(flags + ("injection_marker",)))
+    if label == "UNKNOWN":
+        return Intent(r.label, r.confidence, "rules", r.flags + tuple(f for f in flags if f not in r.flags))
+    return Intent(label, min(conf, 0.9), "llm", flags)
+
+
+def _rules(text: str) -> Intent:
     s = signals(text)
     flags = ("injection_marker",) if s["injection"] else ()
     against = s["negated"] or s["keep"]
@@ -125,3 +144,41 @@ def classify(text: str, offline: bool = True) -> Intent:
     if s["other"]:
         return Intent("NOT_DELETE", 0.8, "rules", flags)
     return Intent("UNKNOWN", 0.0, "rules", flags)
+
+
+_PROMPT = Path(__file__).resolve().parent.parent / "prompts" / "intent_classifier.md"
+_SCHEMA = {"required": ["results"]}
+_neighbour_cache: dict = {}
+
+
+def _neighbours(text: str, client, k: int = 3) -> str:
+    """k nearest sample request texts (rules label as the example label), by cosine similarity of query embeddings."""
+    if id(client) not in _neighbour_cache:
+        rows = [r["request_text"] for r in read_csv(DATASET / "sample_deletion_requests.csv")]
+        rows = [t for t in rows if _rules(t).label != "UNKNOWN"]
+        _neighbour_cache[id(client)] = (rows, client.embed(rows, input_type="query"))
+    rows, vecs = _neighbour_cache[id(client)]
+    q = client.embed([text], input_type="query")[0]
+
+    def cos(a, b):
+        return sum(x * y for x, y in zip(a, b)) / ((sum(x * x for x in a) * sum(y * y for y in b)) ** 0.5 or 1)
+    best = sorted(range(len(rows)), key=lambda i: -cos(q, vecs[i]))[:k]
+    return "\n".join(f"{json.dumps(rows[i], ensure_ascii=False)} -> {_rules(rows[i]).label}" for i in best)
+
+
+def _ask_llm(text: str, client) -> tuple[str, float, tuple]:
+    try:
+        neighbours = _neighbours(text, client)
+    except Exception:
+        neighbours = ""
+    # request text is data: JSON-encoded inside the <requests> block, tag-closers neutralised
+    safe = (text or "").replace("</requests>", "").replace("<requests>", "")
+    prompt = (_PROMPT.read_text(encoding="utf-8").replace("{{neighbours}}", neighbours)
+              .replace("{{requests}}", json.dumps([{"id": "1", "text": safe}], ensure_ascii=False)))
+    out = client.complete("fast", [{"role": "user", "content": prompt}], schema=_SCHEMA, max_tokens=300)
+    res = out["results"][0]
+    label = res.get("label")
+    if label not in LABELS:
+        raise ValueError("bad label")
+    flags = tuple(f for f in res.get("flags", []) if f == "injection_marker")
+    return label, float(res.get("confidence", 0.5)), flags

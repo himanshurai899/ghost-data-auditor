@@ -25,7 +25,8 @@ def main() -> int:
     a = ap.parse_args()
     llm.load_env()  # gitignored .env; real environment variables take precedence
     try:
-        m = run(a.requests, a.out, cases=a.cases, offline=not a.online, strict_temporal=a.strict_temporal)
+        m = run(a.requests, a.out, cases=a.cases, offline=not a.online, strict_temporal=a.strict_temporal,
+                client=llm.Client() if a.online else None)
     except GateFailure as e:
         print(f"GATE FAILURE {e}", file=sys.stderr)
         return 2
