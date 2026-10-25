@@ -6,9 +6,11 @@ embed(question) and rerank are retrieval calls. Passage embeddings are cached on
 from __future__ import annotations
 
 import hashlib
+from pathlib import Path
 import json
 import re
 import logging
+import threading
 import time
 
 from . import llm
@@ -36,6 +38,17 @@ def build_chunks(events: list[dict]) -> list[dict]:
     chunks, roll = [], {}
     for e in events:
         ev = list(e.get("evidence_ids") or [])
+        c0 = e.get("case_id")
+        # Index size matters: a 518-case run has ~3,600 events and every chunk costs an embedding. Routine PASS events
+        # per case add nothing the per-case rollup (below) does not say, so only warnings/failures and run-level
+        # events become chunks of their own; emit/contract events still feed the rollups.
+        if c0 and e.get("verdict") not in ("WARN", "FAIL"):
+            if e.get("stage") == "emit":
+                d = e.get("detail") or {}
+                roll.setdefault(c0, {}).update(reported=d.get("reported"), audited=d.get("status"), steps=d.get("steps"), ev=ev)
+            elif e.get("stage") == "contract":
+                roll.setdefault(c0, {})["contract"] = e.get("verdict")
+            continue
         text = " | ".join(str(x) for x in (e.get("case_id"), e.get("stage"), e.get("gate"), e.get("verdict"),
                                            e.get("summary"), ("evidence " + ",".join(ev)) if ev else None) if x)
         chunks.append({"case_id": e.get("case_id"), "evidence_id": ev[0] if ev else None,
@@ -71,8 +84,8 @@ def _embed_all(client, run_id: str, texts: list[str], large: bool) -> tuple[list
         keys = [hashlib.sha256(t.encode()).hexdigest() for t in texts]
         missing = sorted({k: t for k, t in zip(keys, texts) if k not in vecs}.items())
         try:
-            for i in range(0, len(missing), 32):
-                batch = missing[i:i + 32]
+            for i in range(0, len(missing), 64):
+                batch = missing[i:i + 64]
                 for (k, _), v in zip(batch, client.embed([t for _, t in batch], input_type="passage", large=use_large)):
                     vecs[k] = v
         except llm.LLMError as e:
@@ -167,6 +180,27 @@ def register(app, deps) -> None:
     from fastapi import HTTPException
 
     state = {"client": None, "tokens": 10.0, "t": time.monotonic()}
+    state_lock = threading.Lock()
+
+    def get_client():
+        with state_lock:
+            if state["client"] is None:
+                llm.load_env(REPO / ".env")
+                state["client"] = llm.Client()
+            return state["client"]
+
+    def warm():
+        """Embed the newest run's chunks in the background so the first question does not pay for the index."""
+        try:
+            runs = sorted(p.name for p in Path(deps.runs_dir).iterdir() if p.is_dir() and (p / "trail.jsonl").is_file())
+            if runs:
+                texts = [c["text"] for c in build_chunks(deps.load_trail(runs[-1]))]
+                _embed_all(get_client(), runs[-1], texts, False)
+                log.info("ask index warmed for %s (%d chunks)", runs[-1], len(texts))
+        except Exception as e:  # warm-up is best effort; the first question simply builds the index itself
+            log.warning("ask index warm-up skipped: %s", str(e)[:80])
+
+    threading.Thread(target=warm, name="ask-warmup", daemon=True).start()
 
     @app.post("/api/ask")
     def ask(req: AskRequest):
@@ -177,11 +211,8 @@ def register(app, deps) -> None:
             raise HTTPException(429, "Too many questions; try again shortly.")
         state["tokens"] -= 1
         run_id = deps.validate_run_id(req.run_id)
-        if state["client"] is None:
-            llm.load_env(REPO / ".env")
-            state["client"] = llm.Client()
         try:
-            res = answer(req.question, deps.load_trail(run_id), state["client"], run_id=run_id)
+            res = answer(req.question, deps.load_trail(run_id), get_client(), run_id=run_id)
         except llm.LLMError:
             raise HTTPException(503, "The auditor is temporarily unavailable.")
         res["answer"] = deps.mask_text(res["answer"])
