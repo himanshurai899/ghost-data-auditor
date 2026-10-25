@@ -5,6 +5,7 @@
 
 # runtime output (may contain dataset identifiers, T9)
 runs/
+.ghost/
 .cache/
 code.zip
 agent-trace/
